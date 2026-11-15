@@ -111,16 +111,25 @@ export function MapCanvas({
     let cancelled = false;
     let fallbackStep = 0;
 
-    const map = new Map({
-      container: el,
-      style: STREET_RASTER_STYLE,
-      center: [center.lng, center.lat],
-      zoom: 14,
-      pitch: 0,
-      bearing: 0,
-      attributionControl: { compact: true },
-      maxPitch: 60,
-    });
+    let map: Map;
+    try {
+      map = new Map({
+        container: el,
+        style: STREET_RASTER_STYLE,
+        center: [center.lng, center.lat],
+        zoom: 14,
+        pitch: 0,
+        bearing: 0,
+        attributionControl: { compact: true },
+        maxPitch: 60,
+      });
+    } catch (err) {
+      // WebGL2 off/unsupported: keep the app usable (lists + voice still work).
+      console.warn('[map] could not start', err);
+      setStatus('error');
+      setStatusMsg('Map needs WebGL2. Turn on hardware acceleration in browser settings. Lists and voice still work.');
+      return;
+    }
 
     map.addControl(new NavigationControl({ visualizePitch: true }), 'bottom-right');
     mapRef.current = map;
@@ -273,7 +282,7 @@ export function MapCanvas({
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
       {status !== 'ready' && (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-[#cfd8e3]/90">
-          <p className="rounded-full bg-surface px-4 py-2 text-sm font-semibold text-text shadow-[var(--shadow-card)]">
+          <p className="mx-4 max-w-sm rounded-2xl bg-surface px-4 py-2 text-center text-sm font-semibold text-text shadow-[var(--shadow-card)]">
             {statusMsg || (status === 'error' ? 'Map unavailable' : 'Loading map…')}
           </p>
         </div>
