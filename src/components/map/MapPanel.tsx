@@ -53,6 +53,7 @@ export function MapPanel({ className }: { className?: string }) {
   const usingSampleLocation = useAppStore((s) => s.usingSampleLocation);
   const placesMeta = useAppStore((s) => s.placesMeta);
   const [recenterKey, setRecenterKey] = useState(0);
+  const [query, setQuery] = useState('');
   const hasMapboxDirections = Boolean(import.meta.env.VITE_MAPBOX_TOKEN);
 
   // Sync page → map filter (home = all; service pages = that service)
@@ -100,14 +101,90 @@ export function MapPanel({ className }: { className?: string }) {
   }, [places, filters]);
 
   const selected = places.find((p) => p.id === selectedPlaceId);
+  const [remote, setRemote] = useState<typeof places>([]);
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setRemote([]);
+      return;
+    }
+    const id = window.setTimeout(() => {
+      void placesService.searchWithMeta({ near: coords, kind: 'all', q, radiusM: 30000 }).then(({ places: found }) => setRemote(found));
+    }, 250);
+    return () => window.clearTimeout(id);
+  }, [query, coords]);
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const hit = (p: (typeof places)[number]) =>
+      p.kind !== 'donor' && (p.name.toLowerCase().includes(q) || Boolean(p.address?.toLowerCase().includes(q)));
+    const local = places.filter(hit);
+    const seen = new Set(local.map((p) => p.id));
+    return [...local, ...remote.filter((p) => hit(p) && !seen.has(p.id))]
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(0, 6);
+  }, [places, remote, query]);
+  const pick = (p: (typeof places)[number]) => {
+    if (!places.some((x) => x.id === p.id)) setPlaces([p, ...places]);
+    setSelectedPlaceId(p.id);
+    setQuery('');
+  };
 
   return (
+    <div className={cn('flex h-full min-h-0 w-full flex-col gap-3', className)}>
+      {/* Toolbar outside the map: filters + search */}
+      <div className="relative z-30 flex items-center gap-2">
+      <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
+          {chips.map((chip) => (
+            <FilterChip
+              key={chip.id}
+              label={t(chip.labelKey)}
+              icon={chip.icon}
+              active={
+                chip.id === 'all'
+                  ? filters.includes('all')
+                  : filters.includes(chip.id) && !filters.includes('all')
+              }
+              onClick={() => toggleFilter(chip.id)}
+            />
+          ))}
+        </div>
+        <div className="relative w-44 shrink-0 lg:w-56">
+          <Icon name="search" size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && matches[0]) pick(matches[0]);
+            }}
+            placeholder="Search places…"
+            className="h-9 w-full rounded-full border border-border bg-surface pl-9 pr-3 text-[13px] shadow-[var(--shadow-card)] outline-none focus:border-primary"
+          />
+          {query.trim() && (
+            <div className="absolute right-0 top-11 w-72 overflow-hidden rounded-2xl border border-border bg-surface shadow-[var(--shadow-float)]">
+              {matches.length ? (
+                matches.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => pick(p)}
+                    className="flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-[13px] hover:bg-accent-soft"
+                  >
+                    <span className="truncate font-semibold">{p.name}</span>
+                    <span className="shrink-0 text-[12px] text-text-secondary">{Number(p.distanceKm).toFixed(1)} km</span>
+                  </button>
+                ))
+              ) : (
+                <p className="px-3.5 py-3 text-[13px] text-text-secondary">No matching places nearby</p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
     <section
       aria-label="Live emergency map"
-      className={cn(
-        'relative h-[var(--map-mobile-h)] min-h-[200px] w-full overflow-hidden bg-[#dce8f5] lg:h-full lg:min-h-0 lg:flex-1',
-        className,
-      )}
+      className="relative min-h-[200px] w-full flex-1 overflow-hidden rounded-[28px] border border-border bg-[#dce8f5] shadow-[var(--shadow-float)]"
     >
       <MapCanvas
         center={coords}
@@ -119,23 +196,8 @@ export function MapPanel({ className }: { className?: string }) {
         recenterKey={recenterKey}
       />
 
-      <div className="absolute left-0 right-0 top-2 z-20 flex gap-1.5 overflow-x-auto px-2.5 no-scrollbar">
-        {chips.map((chip) => (
-          <FilterChip
-            key={chip.id}
-            label={t(chip.labelKey)}
-            icon={chip.icon}
-            active={
-              chip.id === 'all'
-                ? filters.includes('all')
-                : filters.includes(chip.id) && !filters.includes('all')
-            }
-            onClick={() => toggleFilter(chip.id)}
-          />
-        ))}
-      </div>
 
-      <div className="absolute right-2.5 top-12 z-20 flex flex-col gap-1.5">
+      <div className="absolute right-3 top-3 z-20 flex flex-col gap-1.5">
         <button
           type="button"
           aria-label={t('map.toggle3d')}
@@ -155,8 +217,8 @@ export function MapPanel({ className }: { className?: string }) {
         </button>
       </div>
 
-      {(usingSampleLocation || placesMeta?.offline || placesMeta?.refreshing || selected || route) && (
-        <div className="absolute bottom-14 left-2.5 right-2.5 z-20 space-y-1.5 lg:bottom-3 lg:right-auto lg:max-w-sm">
+      {(usingSampleLocation || placesMeta?.offline || placesMeta?.refreshing || selected) && (
+        <div className="absolute bottom-3 left-3 right-3 z-20 space-y-1.5 sm:right-auto sm:max-w-sm">
           {usingSampleLocation && (
             <div className="glass rounded-lg px-2.5 py-1.5 text-[11.5px] font-semibold text-text-secondary shadow-[var(--shadow-card)]">
               {t('map.sampleLocation')}
@@ -172,26 +234,41 @@ export function MapPanel({ className }: { className?: string }) {
               {t('places.findingHelp')}
             </div>
           )}
-          {selected && route && (
-            <div className="glass rounded-lg px-2.5 py-2 shadow-[var(--shadow-float)]">
-              <p className="truncate text-xs font-bold text-text">{selected.name}</p>
-              <p className="mt-0.5 text-[11.5px] text-text-secondary">
-                {route.distanceKm.toFixed(1)} {t('common.km')} · {route.durationMin} {t('common.min')} ·{' '}
-                {selected.address}
+          {selected && (
+            <div className="rounded-2xl border border-border bg-surface p-3.5 shadow-[var(--shadow-float)]">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-[15px] font-semibold leading-snug text-text">{selected.name}</p>
+                <button type="button" onClick={() => setSelectedPlaceId(null)} aria-label="Close" className="text-text-secondary hover:text-text">
+                  <Icon name="x" size={16} />
+                </button>
+              </div>
+              <p className="mt-0.5 text-[12.5px] text-text-secondary">
+                {route ? `${route.distanceKm.toFixed(1)} ${t('common.km')} · ${route.durationMin} ${t('common.min')} · ` : `${selected.distanceKm} ${t('common.km')} · `}
+                {selected.address || 'Address not listed'}
               </p>
-              {selected.phone ? (
+              <div className="mt-2.5 flex flex-wrap gap-2">
                 <a
-                  href={`tel:${selected.phone.replace(/\s/g, '')}`}
-                  className="mt-1.5 inline-flex min-h-8 items-center gap-1 rounded-full bg-primary px-2.5 text-[11.5px] font-bold text-on-primary"
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${selected.lat},${selected.lng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full bg-accent px-3.5 text-[13px] font-semibold text-on-accent"
                 >
-                  <Icon name="phone" size={12} />
-                  {t('common.call')} {selected.phone}
+                  <Icon name="navigation" size={14} /> Open in Google Maps
                 </a>
-              ) : (
-                <p className="mt-1.5 text-[11.5px] font-semibold text-text-secondary">
-                  {t('places.phoneUnavailable')}
-                </p>
-              )}
+                {selected.phone ? (
+                  <a
+                    href={`tel:${selected.phone.split(/[;,]/)[0]!.replace(/\s/g, '')}`}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-3.5 text-[13px] font-semibold text-on-primary"
+                  >
+                    <Icon name="phone" size={14} />
+                    {t('common.call')}
+                  </a>
+                ) : (
+                  <span className="inline-flex h-9 items-center text-[12px] font-semibold text-text-secondary">
+                    {t('places.phoneUnavailable')}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -202,5 +279,6 @@ export function MapPanel({ className }: { className?: string }) {
         {hasMapboxDirections ? ` · ${t('map.mapboxAttribution')}` : ''}
       </div>
     </section>
+    </div>
   );
 }

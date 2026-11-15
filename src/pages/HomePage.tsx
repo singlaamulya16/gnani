@@ -79,13 +79,14 @@ export function HomePage() {
           <div className="flex flex-wrap items-center gap-2.5 pt-1">
             <button
               type="button"
-              onClick={() => navigate('/voice')}
-              className="group inline-flex h-11 items-center gap-2 rounded-full bg-primary pl-5 pr-1.5 text-[14px] font-semibold text-white shadow-[var(--shadow-voice)] transition-transform active:scale-95"
+              onClick={() => navigate('/agent')}
+              className="group relative inline-flex h-14 items-center gap-3 rounded-full bg-sos pl-2 pr-6 text-[16px] font-bold text-white shadow-[var(--shadow-sos)] transition-transform active:scale-95"
             >
-              {t('home.talkTitle')}
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-primary-dark transition-transform group-hover:scale-110">
-                <Icon name="mic" size={16} strokeWidth={2.25} />
+              <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white text-sos">
+                {!reduce && <span className="absolute inset-0 animate-ping rounded-full bg-white/60" />}
+                <Icon name="siren" size={20} strokeWidth={2.25} />
               </span>
+              SOS · {t('home.agentCta', 'Talk to Agent')}
             </button>
             <button
               type="button"
@@ -93,7 +94,7 @@ export function HomePage() {
                 setActiveFilters(['hospital']);
                 navigate('/hospitals');
               }}
-              className="inline-flex h-11 items-center rounded-full border-[1.5px] border-primary px-5 text-[14px] font-semibold text-primary transition-colors hover:bg-primary-soft"
+              className="inline-flex h-14 items-center rounded-full border-[1.5px] border-primary px-6 text-[15px] font-semibold text-primary transition-colors hover:bg-primary-soft"
             >
               {t('home.findHospitals', 'Nearest hospital')}
             </button>
@@ -179,8 +180,8 @@ export function HomePage() {
             message={placesMeta?.message}
           />
         </div>
-        <div className="relative h-[420px] overflow-hidden rounded-[28px] border border-border bg-surface shadow-[var(--shadow-float)] lg:h-[560px]">
-          <MapPanel className="h-full lg:h-full" />
+        <div className="h-[460px] lg:h-[600px]">
+          <MapPanel className="h-full" />
         </div>
         <div className="mt-4 grid grid-cols-3 gap-3">
           {[
@@ -258,24 +259,33 @@ export function HomePage() {
                   if (s.filter !== 'ai') setActiveFilters([s.filter]);
                   navigate(s.route);
                 }}
-                className="group flex flex-col gap-3 rounded-[var(--radius-xl)] border border-border bg-surface p-5 text-left shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-float)]"
+                className={`group relative flex flex-col gap-3 overflow-hidden rounded-[var(--radius-xl)] border-2 p-5 pt-6 text-left shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-float)] ${
+                  s.urgent
+                    ? 'border-sos/30 bg-gradient-to-br from-sos-soft to-white hover:border-sos'
+                    : s.filter === 'ai'
+                      ? 'border-primary bg-primary text-white'
+                      : 'border-accent/50 bg-gradient-to-br from-accent-soft to-white hover:border-accent'
+                }`}
               >
+                <span className={`absolute inset-x-0 top-0 h-1.5 ${s.urgent ? 'bg-sos' : 'bg-accent'}`} />
                 <span
                   className={
                     s.urgent
-                      ? 'flex h-12 w-12 items-center justify-center rounded-full bg-sos-soft text-sos'
-                      : 'flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-primary'
+                      ? 'flex h-12 w-12 items-center justify-center rounded-full bg-sos text-white shadow-[var(--shadow-sos)]'
+                      : s.filter === 'ai'
+                        ? 'flex h-12 w-12 items-center justify-center rounded-full bg-accent text-primary-dark'
+                        : 'flex h-12 w-12 items-center justify-center rounded-full bg-primary text-accent'
                   }
                 >
                   <Icon name={s.icon} size={22} strokeWidth={2} />
                 </span>
                 <span>
-                  <span className="block font-[family-name:var(--font-display)] text-[16px] font-semibold leading-tight text-text">
+                  <span className={`block font-[family-name:var(--font-display)] text-[18px] font-semibold leading-tight ${s.filter === 'ai' ? 'text-white' : 'text-text'}`}>
                     {t(s.titleKey)}
                   </span>
-                  <span className="mt-1 block text-[12.5px] leading-snug text-text-secondary">{t(s.subKey)}</span>
+                  <span className={`mt-1 block text-[13px] leading-snug ${s.filter === 'ai' ? 'text-white/75' : 'text-text-secondary'}`}>{t(s.subKey)}</span>
                 </span>
-                <span className="mt-auto flex items-center justify-between text-[13px] font-semibold text-primary">
+                <span className={`mt-auto flex items-center justify-between text-[13px] font-semibold ${s.filter === 'ai' ? 'text-accent' : s.urgent ? 'text-sos' : 'text-primary'}`}>
                   <span className="inline-flex items-center gap-1 group-hover:text-accent-dark">
                     {t('common.open', 'Open')} <span className="text-accent">→</span>
                   </span>
