@@ -83,6 +83,10 @@ function makeMarkerEl(place: Place, selected: boolean, popDelayMs: number | null
 }
 
 function addRouteLayer(map: Map) {
+  if (!map.isStyleLoaded()) {
+    map.once('styledata', () => addRouteLayer(map));
+    return;
+  }
   if (map.getSource('route')) return;
   map.addSource('route', {
     type: 'geojson',

@@ -1,5 +1,5 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@/components/ui';
 
@@ -9,7 +9,7 @@ const STEPS = [
   {
     target: 'sos',
     title: 'SOS Agent',
-    body: 'In an emergency, tap here and just speak — Hindi, English or Hinglish. The agent asks only what is needed and starts finding help immediately.',
+    body: 'In an emergency, tap here and just speak. The agent asks only what is needed and starts finding help immediately.',
   },
   {
     target: 'evaluation',
@@ -42,6 +42,11 @@ export function startWalkthrough() {
 export function Walkthrough() {
   const [step, setStep] = useState<number | null>(null);
   const [rect, setRect] = useState<Rect | null>(null);
+  const [cardHeight, setCardHeight] = useState(0);
+  const cardRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (cardRef.current) setCardHeight(cardRef.current.offsetHeight);
+  });
 
   // auto-start on first visit
   useEffect(() => {
@@ -110,9 +115,31 @@ export function Walkthrough() {
   const s = STEPS[step]!;
   const vh = window.innerHeight;
   const vw = window.innerWidth;
-  const below = rect.top + rect.height + 230 < vh;
-  const cardTop = below ? rect.top + rect.height + 14 : Math.max(16, rect.top - 214);
-  const cardLeft = Math.min(Math.max(16, rect.left), vw - 376);
+  const cardW = Math.min(360, vw - 32);
+  const cardH = cardHeight || 230;
+  const pad = 14;
+  let cardTop: number;
+  let cardLeft: number;
+  const roomRight = vw - (rect.left + rect.width);
+  if (rect.left > vw * 0.6 && rect.left - cardW - pad > 16) {
+    // target hugs the right edge (e.g. Evaluation tab): put the card to its left, vertically centred
+    cardLeft = rect.left - cardW - pad;
+    cardTop = rect.top + rect.height / 2 - cardH / 2;
+  } else if (rect.top + rect.height + pad + cardH <= vh - 16) {
+    cardTop = rect.top + rect.height + pad; // below
+    cardLeft = rect.left;
+  } else if (rect.top - pad - cardH >= 16) {
+    cardTop = rect.top - pad - cardH; // above
+    cardLeft = rect.left;
+  } else if (roomRight > cardW + pad + 16) {
+    cardLeft = rect.left + rect.width + pad; // beside
+    cardTop = rect.top;
+  } else {
+    cardTop = vh - cardH - 16; // overlap, but fully visible
+    cardLeft = rect.left;
+  }
+  cardTop = Math.min(Math.max(16, cardTop), vh - cardH - 16);
+  cardLeft = Math.min(Math.max(16, cardLeft), vw - cardW - 16);
 
   return createPortal(
     <div className="fixed inset-0 z-[100]" role="dialog" aria-label="Walkthrough">
@@ -132,14 +159,13 @@ export function Walkthrough() {
       {/* click-catcher */}
       <button type="button" aria-label="Close tour" className="absolute inset-0 cursor-default" onClick={close} />
 
-      <AnimatePresence mode="wait">
         <motion.div
           key={step}
+          ref={cardRef}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="fixed w-[360px] max-w-[calc(100vw-32px)] rounded-3xl bg-surface p-5 shadow-[var(--shadow-float)]"
-          style={{ top: cardTop, left: cardLeft }}
+          className="fixed rounded-3xl bg-surface p-5 shadow-[var(--shadow-float)]"
+          style={{ top: cardTop, left: cardLeft, width: cardW }}
         >
           <div className="flex items-center justify-between">
             <span className="rounded-full bg-accent-soft px-3 py-1 text-[12px] font-bold text-on-accent">
@@ -151,6 +177,7 @@ export function Walkthrough() {
           </div>
           <p className="mt-3 font-[family-name:var(--font-display)] text-[20px] font-semibold leading-tight">{s.title}</p>
           <p className="mt-1.5 text-[14px] leading-relaxed text-text-secondary">{s.body}</p>
+          {s.target === 'evaluation' && (
           <div className="mt-3 flex items-center gap-2 rounded-xl bg-primary-soft px-3 py-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-[family-name:var(--font-display)] text-[12px] font-bold text-accent">VS</span>
             <span className="min-w-0 leading-tight">
@@ -160,6 +187,7 @@ export function Walkthrough() {
               </a>
             </span>
           </div>
+          )}
           <div className="mt-4 flex items-center justify-between">
             <div className="flex gap-1.5">
               {STEPS.map((_, i) => (
@@ -185,7 +213,6 @@ export function Walkthrough() {
             </div>
           </div>
         </motion.div>
-      </AnimatePresence>
     </div>,
     document.body,
   );
