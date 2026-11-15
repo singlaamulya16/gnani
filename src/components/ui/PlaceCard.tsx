@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/cn';
+import { donorPhoto, placePhoto } from '@/lib/images';
+import { SmartImage } from './SmartImage';
 import { placesService } from '@/services/placesService';
 import type { Place } from '@/types/domain';
 import { Icon, type IconName } from './Icon';
@@ -43,8 +45,20 @@ export function PlaceCard({ place, selected, onSelect, actions = true }: PlaceCa
       )}
     >
       <button type="button" onClick={onSelect} className="flex w-full items-start gap-3 text-left">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-soft text-primary">
-          <Icon name={kindIcon[place.kind]} size={18} />
+        <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-accent-soft">
+          <SmartImage
+            src={place.kind === 'donor' ? donorPhoto(place.name.split(/[\s·]/)[0] ?? place.name) : placePhoto(place.kind)}
+            alt=""
+            className="h-full w-full object-cover"
+            fallback={
+              <span className="flex h-full w-full items-center justify-center text-primary">
+                <Icon name={kindIcon[place.kind]} size={20} />
+              </span>
+            }
+          />
+          <span className="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-accent shadow">
+            <Icon name={kindIcon[place.kind]} size={12} />
+          </span>
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-start justify-between gap-2">

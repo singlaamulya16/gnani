@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FilterChip, Icon } from '@/components/ui';
 import { cn } from '@/lib/cn';
+import { IMAGES, placePhoto } from '@/lib/images';
 import { placesService } from '@/services/placesService';
 import { routingService } from '@/services/routingService';
 import type { ServiceFilter } from '@/store/appStore';
@@ -312,7 +313,7 @@ export function MapPanel({ className, variant = 'default' }: { className?: strin
       {sidebar && (
         <aside className="relative z-30 flex w-full shrink-0 flex-col gap-3 lg:w-[22%] lg:min-w-[230px]">
           {/* your location */}
-          <div className="rounded-2xl bg-primary p-4 text-white shadow-[var(--shadow-voice)]">
+          <div className="rounded-2xl bg-primary p-3.5 text-white shadow-[var(--shadow-voice)]">
             <span className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide text-accent">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-70" />
@@ -327,7 +328,7 @@ export function MapPanel({ className, variant = 'default' }: { className?: strin
             <button
               type="button"
               onClick={() => setFocusUser((f) => !f)}
-              className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-accent text-[13px] font-semibold text-primary-dark"
+              className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-2 rounded-full bg-accent text-[13px] font-semibold text-primary-dark"
             >
               <Icon name={focusUser ? 'map' : 'locateFixed'} size={16} />
               {focusUser ? 'Back to results' : 'Zoom to me'}
@@ -362,29 +363,32 @@ export function MapPanel({ className, variant = 'default' }: { className?: strin
             )}
           </div>
 
-          {/* 6 filters */}
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+          {/* 6 services as image tiles, 2 per row */}
+          <div className="grid min-h-0 flex-1 grid-cols-3 gap-2 lg:grid-cols-2">
             {chips.map((chip) => {
               const active =
                 chip.id === 'all' ? filters.includes('all') : filters.includes(chip.id) && !filters.includes('all');
               const count = chip.id === 'all' ? places.length : places.filter((p) => p.kind === chip.id || (chip.id === 'clinic' && p.kind === 'doctor')).length;
+              const img = chip.id === 'all' ? IMAGES.heroDoctor : placePhoto(chip.id === 'blood_bank' ? 'blood_bank' : chip.id);
               return (
                 <button
                   key={chip.id}
                   type="button"
                   onClick={() => toggleFilter(chip.id)}
                   className={cn(
-                    'flex h-11 items-center justify-between gap-2 rounded-xl border-2 px-3 text-[13.5px] font-semibold transition-colors',
-                    active ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text hover:border-accent',
+                    'group relative min-h-[72px] overflow-hidden rounded-xl text-left transition-all',
+                    active ? 'ring-[3px] ring-accent' : 'ring-1 ring-border hover:ring-2 hover:ring-accent/60',
                   )}
                 >
-                  <span className="flex items-center gap-2">
-                    <Icon name={chip.icon} size={16} className={active ? 'text-accent' : 'text-primary'} />
-                    {t(chip.labelKey)}
+                  <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  <span className={cn('absolute inset-0', active ? 'bg-gradient-to-t from-primary via-primary/70 to-primary/20' : 'bg-gradient-to-t from-black/75 via-black/35 to-transparent')} />
+                  <span className="absolute inset-x-2 bottom-1.5 flex items-end justify-between gap-1">
+                    <span className="flex items-center gap-1 text-[12.5px] font-semibold leading-tight text-white">
+                      <Icon name={chip.icon} size={13} className="shrink-0 text-accent" />
+                      {t(chip.labelKey)}
+                    </span>
+                    {count > 0 && <span className="rounded-full bg-accent px-1.5 text-[10.5px] font-bold text-primary-dark">{count}</span>}
                   </span>
-                  {count > 0 && (
-                    <span className={cn('rounded-full px-2 py-0.5 text-[11px]', active ? 'bg-white/15 text-accent' : 'bg-accent-soft text-on-accent')}>{count}</span>
-                  )}
                 </button>
               );
             })}

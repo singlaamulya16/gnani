@@ -20,7 +20,7 @@ export function AppShell() {
   const reduce = useReducedMotion();
   const variants = reduce ? fadeOnly : pageVariants;
   const isHome = location.pathname === '/';
-  const isFull = isHome || location.pathname === '/agent';
+  const isFull = isHome || location.pathname === '/agent' || location.pathname === '/whatsapp';
   const mapFocus = location.pathname === '/map';
   const setSheetSnap = useAppStore((s) => s.setSheetSnap);
 

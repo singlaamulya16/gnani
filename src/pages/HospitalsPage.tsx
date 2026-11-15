@@ -50,7 +50,6 @@ export function HospitalsPage() {
         {t('pages.hospitals')}
       </h1>
       <PageVoice page="hospital" />
-      <EmergencyBanner />
       <DataStatusBanner
         offline={placesMeta?.offline}
         refreshing={placesMeta?.refreshing && list.length === 0}

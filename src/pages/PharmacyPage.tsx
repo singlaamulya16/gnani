@@ -47,7 +47,6 @@ export function PharmacyPage() {
     <div className="flex flex-col gap-3 pb-3">
       <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">{t('pages.pharmacy')}</h1>
       <PageVoice page="pharmacy" />
-      <EmergencyBanner />
       <DataStatusBanner
         offline={placesMeta?.offline}
         refreshing={placesMeta?.refreshing && list.length === 0}

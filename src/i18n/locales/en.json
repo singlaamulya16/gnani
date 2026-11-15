@@ -9,7 +9,8 @@
     "map": "Map",
     "requests": "Requests",
     "profile": "Profile",
-    "changeLanguage": "Change language"
+    "changeLanguage": "Change language",
+    "whatsapp": "WhatsApp"
   },
   "common": {
     "continue": "Continue",

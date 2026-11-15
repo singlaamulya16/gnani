@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { donorPhoto } from '@/lib/images';
 import { useTranslation } from 'react-i18next';
 import {
   BloodGroupGrid,
@@ -18,6 +19,7 @@ import { requestService } from '@/services/requestService';
 import { useAppStore } from '@/store/appStore';
 import type { SampleRequest } from '@/types/domain';
 import { PageVoice } from '@/components/voice/PageVoice';
+import { notifyWhatsApp } from '@/services/demoWhatsApp';
 
 type Phase = 'form' | 'results' | 'tracking';
 
@@ -70,6 +72,7 @@ export function BloodPage() {
     setActive(req);
     setPhase('tracking');
     push(t('blood.requestSent'), 'success');
+    notifyWhatsApp({ type: 'blood', title: `${group} blood · ${units} unit${units === 1 ? '' : 's'}`, detail: `Request #${req.id.slice(-6).toUpperCase()} · near ${useAppStore.getState().locationLabel}`, ref: req.id });
     requestService.simulateBloodProgress(req.id, setActive);
   };
 
@@ -77,7 +80,6 @@ export function BloodPage() {
     <div className="flex flex-col gap-3 pb-3">
       <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">{t('pages.blood')}</h1>
       <PageVoice page="blood" />
-      <EmergencyBanner />
 
       {phase === 'form' && (
         <>
@@ -138,12 +140,15 @@ export function BloodPage() {
                   onClick={() => setSelectedPlaceId(d.id)}
                   className="flex w-full items-center justify-between rounded-[var(--radius-lg)] bg-surface p-3 text-left shadow-[var(--shadow-card)]"
                 >
-                  <span>
+                  <span className="flex items-center gap-3">
+                    <img src={donorPhoto(d.firstName)} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-accent" />
+                    <span>
                     <span className="block font-semibold">
                       {d.firstName} · {d.bloodGroup}
                     </span>
                     <span className="text-[12px] text-text-secondary">
                       {d.distanceKm.toFixed(1)} {t('common.km')} · {t('blood.demoDonor')}
+                    </span>
                     </span>
                   </span>
                   <span className="rounded-full bg-primary-soft px-2 py-1 text-xs font-bold text-primary">

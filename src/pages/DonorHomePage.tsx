@@ -12,7 +12,6 @@ export function DonorHomePage() {
   return (
     <div className="flex flex-col gap-3 pb-3">
       <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">{t('pages.donorHome')}</h1>
-      <EmergencyBanner />
       <button
         type="button"
         onClick={() => setAvailable((v) => !v)}

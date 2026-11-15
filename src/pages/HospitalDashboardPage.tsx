@@ -25,7 +25,6 @@ export function HospitalDashboardPage() {
         {t('pages.hospitalDash')}
       </h1>
       <p className="text-[12px] text-text-secondary">Sample City Hospital (Demo)</p>
-      <EmergencyBanner />
       <div className="grid grid-cols-2 gap-3">
         {cards.map((c) => (
           <div key={c.label} className="rounded-[var(--radius-lg)] bg-surface p-3 shadow-[var(--shadow-card)]">

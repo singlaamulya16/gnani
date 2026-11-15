@@ -29,6 +29,7 @@ const cols = [
       { to: '/voice', label: 'AI voice helper' },
       { to: '/map', label: 'Live map' },
       { to: '/requests', label: 'My requests' },
+      { to: '/whatsapp', label: 'WhatsApp alerts (demo)' },
     ],
   },
 ];

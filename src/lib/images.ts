@@ -9,3 +9,31 @@ export const IMAGES = {
   blood: 'https://commons.wikimedia.org/wiki/Special:FilePath/Airmen_give_blood_140212-F-LX214-005.jpg?width=600',
   pharmacy: 'https://commons.wikimedia.org/wiki/Special:FilePath/Pharmacy_multilingual_sign_in_Bangalore,_India.jpg?width=600',
 } as const;
+
+const FEMALE = new Set(['priya', 'sneha', 'neha', 'pooja', 'anjali', 'meera', 'kavya', 'riya', 'sunita']);
+/** Sample donor portrait (randomuser.me placeholder photos) — demo only. */
+export function donorPhoto(name: string): string {
+  let h = 0;
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 997;
+  const female = FEMALE.has(name.toLowerCase());
+  return `https://randomuser.me/api/portraits/${female ? 'women' : 'men'}/${(h % 80) + 10}.jpg`;
+}
+
+/** Sample photo per place type (for cards). */
+export function placePhoto(kind: string): string {
+  switch (kind) {
+    case 'hospital':
+      return IMAGES.hospital;
+    case 'pharmacy':
+      return IMAGES.pharmacy;
+    case 'blood_bank':
+      return IMAGES.blood;
+    case 'ambulance':
+      return IMAGES.ambulance;
+    case 'clinic':
+    case 'doctor':
+      return IMAGES.clinic;
+    default:
+      return IMAGES.hospital;
+  }
+}

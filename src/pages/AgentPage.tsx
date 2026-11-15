@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Icon, type IconName } from '@/components/ui';
 import { cn } from '@/lib/cn';
+import { donorPhoto } from '@/lib/images';
 import { delay } from '@/lib/geo';
 import {
   agentStep,
@@ -22,6 +23,7 @@ import { requestService } from '@/services/requestService';
 import { stopSpeaking, voiceService } from '@/services/voice/voiceService';
 import { useAppStore } from '@/store/appStore';
 import type { BloodGroup, Place, SampleRequest } from '@/types/domain';
+import { notifyWhatsApp } from '@/services/demoWhatsApp';
 
 type Msg = { id: number; from: 'agent' | 'user'; text: string };
 type StepStatus = 'pending' | 'running' | 'done';
@@ -150,6 +152,14 @@ export function AgentPage() {
         await runStep(3, async () => {
           req = await requestService.createBloodRequest({ bloodGroup: group, units: slots.units ?? 1 });
           setRequest(req);
+          notifyWhatsApp({
+            type: 'blood',
+            title: `${group} blood${slots.units ? ` · ${slots.units} units` : ''}`,
+            detail: `Request #${req.id.slice(-6).toUpperCase()} · ${slots.hospital ?? locationLabel}`,
+            partner: matched[0] ? `${matched[0].firstName} (${matched[0].bloodGroup} donor)` : undefined,
+            distanceKm: matched[0]?.distanceKm,
+            ref: req.id,
+          });
           return `#${req.id.slice(-6).toUpperCase()}${slots.units ? ` · ${slots.units} units` : ''}`;
         });
         await runStep(4, async () => `${matched.length} donor${matched.length === 1 ? '' : 's'} notified`);
@@ -172,6 +182,12 @@ export function AgentPage() {
           const r = await ambulanceService.requestNearest(coords);
           minutes = Math.max(3, Math.round(r.route.durationMin));
           setEta(minutes);
+          notifyWhatsApp({
+            type: 'ambulance',
+            title: slots.condition ? `${conditionLabel(slots.condition, 'en')}${slots.conscious === 'no' ? ' · patient unconscious' : ''}` : 'Emergency pickup',
+            detail: `Pickup: ${locationLabel}`,
+            distanceKm: r.route.distanceKm,
+          });
           return `ETA ~${minutes} min${r.demo ? ' (simulated)' : ''}`;
         });
         let hospitals: Place[] = [];
@@ -520,11 +536,9 @@ export function AgentPage() {
                 {request ? request.status : `Ambulance on the way · ~${eta} min`}
               </span>
             </span>
-            {request && (
-              <span className="rounded-full bg-white/15 px-3 py-1 text-[12px] font-semibold">
-                #{request.id.slice(-6).toUpperCase()}
-              </span>
-            )}
+            <a href="/whatsapp" target="_blank" rel="noreferrer" className="rounded-full bg-[#25D366] px-3 py-1.5 text-[12px] font-semibold text-white">
+              View on WhatsApp (demo)
+            </a>
           </div>
         )}
 
@@ -567,7 +581,10 @@ export function AgentPage() {
             <div className="grid grid-cols-2 gap-2.5">
               {donors.map((d) => (
                 <div key={d.id} className="flex items-center gap-2.5 rounded-xl border border-border px-3 py-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sos-soft text-[12px] font-bold text-sos">{d.bloodGroup}</span>
+                  <span className="relative">
+                    <img src={donorPhoto(d.firstName)} alt="" className="h-11 w-11 rounded-full object-cover ring-2 ring-accent" />
+                    <span className="absolute -bottom-1 -right-1 rounded-full bg-sos px-1.5 text-[10px] font-bold text-white">{d.bloodGroup}</span>
+                  </span>
                   <span>
                     <span className="block text-[14px] font-semibold">{d.firstName}</span>
                     <span className="text-[12px] text-text-secondary">{d.distanceKm.toFixed(1)} km · notified</span>

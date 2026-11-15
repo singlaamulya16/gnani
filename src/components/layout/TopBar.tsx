@@ -11,6 +11,7 @@ const nav = [
   { to: '/ambulance', labelKey: 'services.ambulance' },
   { to: '/voice', labelKey: 'services.ai' },
   { to: '/map', labelKey: 'nav.map' },
+  { to: '/whatsapp', labelKey: 'nav.whatsapp' },
 ] as const;
 
 export function TopBar() {
@@ -39,7 +40,7 @@ export function TopBar() {
                   end={'end' in item ? item.end : false}
                   className={({ isActive }) =>
                     cn(
-                      'relative rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors',
+                      'relative whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] font-medium transition-colors',
                       isActive ? 'text-accent' : 'text-white/80 hover:text-white',
                     )
                   }

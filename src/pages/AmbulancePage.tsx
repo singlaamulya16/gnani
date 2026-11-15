@@ -13,10 +13,12 @@ import { ambulanceService } from '@/services/ambulanceService';
 import { placesService } from '@/services/placesService';
 import { useAppStore } from '@/store/appStore';
 import { PageVoice } from '@/components/voice/PageVoice';
+import { notifyWhatsApp } from '@/services/demoWhatsApp';
 
 export function AmbulancePage() {
   const { t } = useTranslation();
   const coords = useAppStore((s) => s.coords);
+  const locationLabel = useAppStore((s) => s.locationLabel);
   const setPlaces = useAppStore((s) => s.setPlaces);
   const places = useAppStore((s) => s.places);
   const placesMeta = useAppStore((s) => s.placesMeta);
@@ -41,6 +43,7 @@ export function AmbulancePage() {
     setSelectedPlaceId(ambulance.id);
     setRoute(route);
     push(demo ? t('ambulance.dispatchedDemo') : t('ambulance.dispatched'), 'success');
+    notifyWhatsApp({ type: 'ambulance', title: 'Ambulance requested from HelpMe', detail: `Pickup: ${locationLabel}`, distanceKm: route.distanceKm });
     setRequesting(false);
   };
 
@@ -50,7 +53,6 @@ export function AmbulancePage() {
     <div className="flex flex-col gap-3 pb-3">
       <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">{t('pages.ambulance')}</h1>
       <PageVoice page="ambulance" />
-      <EmergencyBanner />
       <DataStatusBanner
         offline={placesMeta?.offline}
         refreshing={placesMeta?.refreshing && list.length === 0}

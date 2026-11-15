@@ -37,7 +37,6 @@ export function VoicePage() {
           हिंदी, English or Hinglish. Tap the mic, speak, and HelpMe acts on the map.
         </p>
       </div>
-      <EmergencyBanner />
       <motion.button
         type="button"
         aria-label={t('voice.idle')}

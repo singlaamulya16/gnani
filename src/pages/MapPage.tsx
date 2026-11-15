@@ -24,7 +24,6 @@ export function MapPage() {
     <div className="flex flex-col gap-3 pb-3">
       <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">{t('pages.fullMap')}</h1>
       <PageVoice page="map" />
-      <EmergencyBanner />
       <SearchField value={q} onChange={setQ} placeholder="Search hospitals, pharmacies, blood banks…" />
       <p className="text-[12.5px] text-text-secondary">
         {places.length ? `${shown.length} places near you · tap one to see the route` : t('map.pageHint')}

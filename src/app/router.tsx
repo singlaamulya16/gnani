@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { AdminPage } from '@/pages/AdminPage';
 import { AgentPage } from '@/pages/AgentPage';
+import { WhatsAppPage } from '@/pages/WhatsAppPage';
 import { AmbulancePage } from '@/pages/AmbulancePage';
 import { BloodPage } from '@/pages/BloodPage';
 import { DoctorsPage } from '@/pages/DoctorsPage';
@@ -44,6 +45,7 @@ export function AppRouter() {
         <Route index element={<HomePage />} />
         <Route path="sos" element={<SosPage />} />
         <Route path="agent" element={<AgentPage />} />
+        <Route path="whatsapp" element={<WhatsAppPage />} />
         <Route path="hospitals" element={<HospitalsPage />} />
         <Route path="doctors" element={<DoctorsPage />} />
         <Route path="pharmacy" element={<PharmacyPage />} />

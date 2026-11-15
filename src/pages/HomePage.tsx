@@ -177,7 +177,7 @@ export function HomePage() {
       </div>
 
       {/* ---------- LIVE MAP (full width) ---------- */}
-      <section className="mt-14 w-full px-5 lg:px-10">
+      <section className="mt-10 w-full px-5 lg:px-10">
         <div className="mx-auto mb-5 flex max-w-6xl flex-wrap items-end justify-between gap-3">
           <div>
             <span className="eyebrow">{t('nav.map')}</span>
@@ -192,7 +192,7 @@ export function HomePage() {
             message={placesMeta?.message}
           />
         </div>
-        <div data-tour="map" className="lg:h-[640px]">
+        <div data-tour="map" className="lg:h-[min(540px,calc(100dvh-13rem))]">
           <MapPanel className="h-full" variant="sidebar" />
         </div>
         <div className="mx-auto mt-4 grid max-w-6xl grid-cols-3 gap-3">
