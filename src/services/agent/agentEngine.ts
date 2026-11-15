@@ -47,16 +47,16 @@ export const initialAgentState = (uiLang: string): AgentState => ({
   stage: 'intro',
   slots: {},
   asking: null,
-  lang: uiLang.startsWith('hi') ? 'hi-en' : 'en',
+  lang: uiLang.startsWith('hi') ? 'hi-en' : 'hi-en', // Hinglish greeting by default; adapts to the user's language
 });
 
 type Copy = Record<ReplyLang, string>;
 const L = (c: Copy, lang: ReplyLang) => c[lang];
 
 export const GREETING: Copy = {
-  en: "Hi, I'm the HelpMe agent. Tell me the emergency — blood, ambulance, accident, hospital, doctor or medicine.",
-  hi: 'नमस्ते, मैं HelpMe एजेंट हूँ। बताइए क्या इमरजेंसी है — खून, एम्बुलेंस, एक्सीडेंट, अस्पताल, डॉक्टर या दवा।',
-  'hi-en': 'Namaste, main HelpMe agent hoon. Batayiye kya emergency hai — blood, ambulance, accident, hospital, doctor ya dawai.',
+  en: "Hi, I'm the HelpMe helper agent. Tell me what the problem is — blood, ambulance, accident, hospital, doctor or medicine. I'll start helping right away.",
+  hi: 'नमस्ते, मैं HelpMe हेल्पर एजेंट हूँ। आप बोल सकते हैं कि क्या दिक्कत है — खून, एम्बुलेंस, एक्सीडेंट, अस्पताल, डॉक्टर या दवा। मैं तुरंत मदद शुरू करूँगा।',
+  'hi-en': 'Namaste, main HelpMe helper agent hoon. Aap bol sakte ho ki kya dikkat hai — blood, ambulance, accident, hospital, doctor ya dawai. Main turant madad shuru karunga.',
 };
 
 /* ---------------- language (sticky) ---------------- */

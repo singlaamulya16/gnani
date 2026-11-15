@@ -69,6 +69,7 @@ export function HomePage() {
         {/* Evaluation tab — right side of the hero only */}
         <button
           type="button"
+          data-tour="evaluation"
           onClick={() => setEvalOpen(true)}
           className="group absolute right-0 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-2xl bg-primary px-2.5 py-4 text-white shadow-[var(--shadow-voice)] transition-transform hover:-translate-x-1"
           aria-label="Open evaluation: video, workflow and full details"

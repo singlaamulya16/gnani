@@ -3,13 +3,18 @@ import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@/components/ui';
 
-const KEY = 'helpme-tour-v1';
+const KEY = 'helpme-tour-v2';
 
 const STEPS = [
   {
     target: 'sos',
     title: 'SOS Agent',
     body: 'In an emergency, tap here and just speak — Hindi, English or Hinglish. The agent asks only what is needed and starts finding help immediately.',
+  },
+  {
+    target: 'evaluation',
+    title: 'Evaluation for judges',
+    body: 'Demo video, the full workflow diagram (how Gnani AI powers every voice step), impact data and future scope — all in one place.',
   },
   {
     target: 'services',
@@ -67,13 +72,18 @@ export function Walkthrough() {
     if (step == null) return;
     const el = document.querySelector<HTMLElement>(`[data-tour="${STEPS[step]!.target}"]`);
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    measure();
     let frame = 0;
     const loop = () => {
       measure();
       frame = requestAnimationFrame(loop);
     };
     frame = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frame);
+    const iv = window.setInterval(measure, 150); // works even when rAF is throttled
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearInterval(iv);
+    };
   }, [step, measure]);
 
   const close = () => {
@@ -141,6 +151,15 @@ export function Walkthrough() {
           </div>
           <p className="mt-3 font-[family-name:var(--font-display)] text-[20px] font-semibold leading-tight">{s.title}</p>
           <p className="mt-1.5 text-[14px] leading-relaxed text-text-secondary">{s.body}</p>
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-primary-soft px-3 py-2">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-[family-name:var(--font-display)] text-[12px] font-bold text-accent">VS</span>
+            <span className="min-w-0 leading-tight">
+              <span className="block text-[12.5px] font-semibold text-text">Built by Vansh Singla</span>
+              <a href="mailto:vs.vansh19@gmail.com" className="block truncate text-[12px] text-primary underline decoration-accent underline-offset-2">
+                vs.vansh19@gmail.com
+              </a>
+            </span>
+          </div>
           <div className="mt-4 flex items-center justify-between">
             <div className="flex gap-1.5">
               {STEPS.map((_, i) => (

@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, EmergencyBanner, Icon } from '@/components/ui';
 import { useVoiceCommand } from '@/hooks/useVoiceCommand';
-import { voiceService } from '@/services/voice/voiceService';
+import { stopSpeaking, voiceService } from '@/services/voice/voiceService';
+import { GREETING } from '@/services/agent/agentEngine';
 import { useAppStore } from '@/store/appStore';
 
 const suggestions = [
@@ -13,7 +14,7 @@ const suggestions = [
 ];
 
 export function VoicePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { voiceState, toggleListen, runTranscript } = useVoiceCommand();
   const transcript = useAppStore((s) => s.voiceTranscript);
   const reply = useAppStore((s) => s.voiceReply);
@@ -23,6 +24,21 @@ export function VoicePage() {
   useEffect(() => {
     void voiceService.provider().then(setProvider);
   }, []);
+
+  // Greet once when the helper opens
+  const setVoiceCopy = useAppStore((s) => s.setVoiceCopy);
+  const setVoiceState = useAppStore((s) => s.setVoiceState);
+  const greeted = useRef(false);
+  useEffect(() => {
+    if (greeted.current) return;
+    greeted.current = true;
+    const lang = 'hi-en' as const; // Hinglish greeting
+    const text = GREETING[lang];
+    setVoiceCopy('', text);
+    setVoiceState('speaking');
+    void voiceService.speak(text, lang).then(() => setVoiceState('idle'));
+    return () => stopSpeaking();
+  }, [i18n.language, setVoiceCopy, setVoiceState]);
 
   const listen = () => void toggleListen();
 
