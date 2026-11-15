@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DataStatusBanner, Icon, SmartImage, type IconName } from '@/components/ui';
 import { IMAGES } from '@/lib/images';
+import { MapPanel } from '@/components/map/MapPanel';
 import { staggerContainer, staggerItem } from '@/lib/motion';
 import { placesService } from '@/services/placesService';
 import { useAppStore, type ServiceFilter } from '@/store/appStore';
@@ -49,31 +50,27 @@ export function HomePage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 pb-6">
-      <DataStatusBanner
-        offline={placesMeta?.offline}
-        refreshing={placesMeta?.refreshing && !placesMeta?.offline}
-        widened={placesMeta?.widened}
-        message={placesMeta?.message}
-      />
-
-      {/* ---------- HERO ---------- */}
-      <section className="relative grid grid-cols-1 items-center gap-4 sm:grid-cols-[1.15fr_1fr]">
-        <div className="order-1 flex flex-col gap-3">
+    <div className="flex flex-col pb-10">
+      {/* ---------- HERO (full screen) ---------- */}
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-accent-soft blur-3xl" />
+        <div className="pointer-events-none absolute -left-32 bottom-0 h-[360px] w-[360px] rounded-full bg-primary-soft blur-3xl" />
+      <div className="relative mx-auto grid min-h-[calc(100dvh-4rem-56px)] w-full max-w-6xl grid-cols-1 items-center gap-8 px-5 py-8 lg:grid-cols-[1.1fr_1fr] lg:px-10">
+        <div className="order-1 flex flex-col gap-4">
           <span className="relative self-start border border-text px-3 py-1 text-[13px] font-medium text-text">
             {t('home.hello', 'Namaste!')}
             {['-left-1 -top-1', '-right-1 -top-1', '-left-1 -bottom-1', '-right-1 -bottom-1'].map((pos) => (
               <span key={pos} className={`absolute h-2 w-2 border border-text bg-surface ${pos}`} />
             ))}
           </span>
-          <h1 className="font-[family-name:var(--font-display)] text-[28px] font-semibold leading-[1.1] tracking-tight text-text lg:text-[34px]">
+          <h1 className="font-[family-name:var(--font-display)] text-[34px] font-semibold leading-[1.08] tracking-tight text-text sm:text-[44px] lg:text-[58px]">
             {t('home.heroA', 'Emergency help,')}{' '}
             <span className="text-highlight underline decoration-accent/60 decoration-2 underline-offset-4">
               {t('home.heroB', 'one sentence')}
             </span>{' '}
             {t('home.heroC', 'away.')}
           </h1>
-          <p className="max-w-md text-[14px] leading-relaxed text-text-secondary">
+          <p className="max-w-lg text-[15px] leading-relaxed text-text-secondary lg:text-[17px]">
             {t(
               'home.heroBody',
               'Speak in Hindi, English or Hinglish. HelpMe finds hospitals, blood, doctors and ambulances near you, in seconds.',
@@ -111,7 +108,7 @@ export function HomePage() {
         </div>
 
         {/* Image with amber blob */}
-        <div className="relative order-2 mx-auto h-[210px] w-[250px] sm:h-[280px] sm:w-full">
+        <div className="relative order-2 mx-auto h-[280px] w-[300px] sm:h-[380px] sm:w-[400px] lg:h-[500px] lg:w-full">
           <div className="absolute bottom-0 left-1/2 h-[78%] w-[88%] -translate-x-1/2 rounded-[46%_54%_40%_60%/55%_45%_55%_45%] bg-accent" />
           <div className="absolute bottom-0 left-1/2 h-full w-[88%] -translate-x-1/2 overflow-hidden rounded-b-[46%]">
             <SmartImage
@@ -148,15 +145,16 @@ export function HomePage() {
             SOS in 1 tap
           </span>
         </div>
+      </div>
       </section>
 
       {/* ---------- RIBBON ---------- */}
-      <div className="relative -mx-4 lg:-mx-6">
+      <div className="relative">
         <div className="absolute inset-x-0 top-1 h-12 -rotate-[1.5deg] bg-primary" />
         <div className="relative overflow-hidden bg-accent py-3 shadow-[var(--shadow-accent)]">
           <div className={reduce ? 'flex w-max gap-6' : 'flex w-max animate-marquee gap-6'}>
             {[...ribbon, ...ribbon].map((item, i) => (
-              <span key={i} className="flex items-center gap-6 font-[family-name:var(--font-display)] text-[17px] font-semibold text-on-accent">
+              <span key={i} className="flex items-center gap-6 font-[family-name:var(--font-display)] text-[19px] font-semibold text-on-accent lg:text-[22px]">
                 {item}
                 <span className="text-xl text-primary">✳</span>
               </span>
@@ -165,6 +163,40 @@ export function HomePage() {
         </div>
       </div>
 
+      {/* ---------- LIVE MAP (full width) ---------- */}
+      <section className="mx-auto mt-14 w-full max-w-6xl px-5 lg:px-10">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <span className="eyebrow">{t('nav.map')}</span>
+            <h2 className="mt-1 font-[family-name:var(--font-display)] text-[28px] font-semibold leading-tight lg:text-[36px]">
+              <span className="text-highlight">{t('home.helpWord', 'Help')}</span> {t('home.helpRest', 'near you')}
+            </h2>
+          </div>
+          <DataStatusBanner
+            offline={placesMeta?.offline}
+            refreshing={placesMeta?.refreshing && !placesMeta?.offline}
+            widened={placesMeta?.widened}
+            message={placesMeta?.message}
+          />
+        </div>
+        <div className="relative h-[420px] overflow-hidden rounded-[28px] border border-border bg-surface shadow-[var(--shadow-float)] lg:h-[560px]">
+          <MapPanel className="h-full lg:h-full" />
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          {[
+            { n: counts.hospital, label: t('services.hospitals') },
+            { n: counts.clinic, label: t('services.doctors') },
+            { n: counts.pharmacy, label: t('services.pharmacy') },
+          ].map((c) => (
+            <div key={c.label} className="rounded-2xl border border-border bg-surface px-4 py-3 shadow-[var(--shadow-card)]">
+              <span className="block font-[family-name:var(--font-display)] text-[26px] font-semibold text-accent">{c.n}+</span>
+              <span className="text-[13px] text-text-secondary">{c.label} nearby</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="mx-auto mt-14 flex w-full max-w-6xl flex-col gap-10 px-5 lg:px-10">
       {/* ---------- SOS ---------- */}
       <button
         type="button"
@@ -189,9 +221,9 @@ export function HomePage() {
         <div className="flex items-end justify-between gap-3">
           <div>
             <span className="eyebrow">{t('home.services')}</span>
-            <h2 className="mt-1 font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">
-              <span className="text-highlight">{t('home.helpWord', 'Help')}</span>{' '}
-              {t('home.helpRest', 'near you')}
+            <h2 className="mt-1 font-[family-name:var(--font-display)] text-[28px] font-semibold leading-tight lg:text-[36px]">
+              <span className="text-highlight">{t('home.servicesWord', 'Services')}</span>{' '}
+              {t('home.servicesRest', 'we provide')}
             </h2>
           </div>
           <Link
@@ -206,7 +238,7 @@ export function HomePage() {
         </div>
 
         <motion.div
-          className="grid grid-cols-2 gap-3 sm:grid-cols-3"
+          className="grid grid-cols-2 gap-4 lg:grid-cols-3"
           variants={reduce ? undefined : staggerContainer}
           initial="initial"
           animate="animate"
@@ -226,7 +258,7 @@ export function HomePage() {
                   if (s.filter !== 'ai') setActiveFilters([s.filter]);
                   navigate(s.route);
                 }}
-                className="group flex flex-col gap-3 rounded-[var(--radius-xl)] border border-border bg-surface p-4 text-left shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-float)]"
+                className="group flex flex-col gap-3 rounded-[var(--radius-xl)] border border-border bg-surface p-5 text-left shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-float)]"
               >
                 <span
                   className={
@@ -290,7 +322,7 @@ export function HomePage() {
             <Icon name="droplet" size={22} />
           </span>
           <span>
-            <span className="block font-[family-name:var(--font-display)] text-[17px] font-semibold text-on-accent">
+            <span className="block font-[family-name:var(--font-display)] text-[19px] font-semibold text-on-accent lg:text-[22px]">
               {t('home.donorCta')}
             </span>
             <span className="text-[13px] text-on-accent/80">{t('home.donorSub')}</span>
@@ -300,6 +332,7 @@ export function HomePage() {
           <Icon name="chevronRight" size={18} />
         </span>
       </Link>
+      </div>
     </div>
   );
 }
