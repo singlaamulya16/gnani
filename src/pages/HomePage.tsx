@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { DataStatusBanner, Icon, SmartImage, type IconName } from '@/components/ui';
 import { IMAGES } from '@/lib/images';
 import { MapPanel } from '@/components/map/MapPanel';
+import { Walkthrough } from '@/components/tour/Walkthrough';
 import { staggerContainer, staggerItem } from '@/lib/motion';
 import { placesService } from '@/services/placesService';
 import { useAppStore, type ServiceFilter } from '@/store/appStore';
@@ -51,6 +52,7 @@ export function HomePage() {
 
   return (
     <div className="flex flex-col pb-10">
+      <Walkthrough />
       {/* ---------- HERO (full screen) ---------- */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-accent-soft blur-3xl" />
@@ -79,6 +81,7 @@ export function HomePage() {
           <div className="flex flex-wrap items-center gap-2.5 pt-1">
             <button
               type="button"
+              data-tour="sos"
               onClick={() => navigate('/agent')}
               className="group relative inline-flex h-14 items-center gap-3 rounded-full bg-sos pl-2 pr-6 text-[16px] font-bold text-white shadow-[var(--shadow-sos)] transition-transform active:scale-95"
             >
@@ -180,7 +183,7 @@ export function HomePage() {
             message={placesMeta?.message}
           />
         </div>
-        <div className="h-[460px] lg:h-[600px]">
+        <div data-tour="map" className="h-[460px] lg:h-[600px]">
           <MapPanel className="h-full" />
         </div>
         <div className="mt-4 grid grid-cols-3 gap-3">
@@ -239,6 +242,7 @@ export function HomePage() {
         </div>
 
         <motion.div
+          data-tour="services"
           className="grid grid-cols-2 gap-4 lg:grid-cols-3"
           variants={reduce ? undefined : staggerContainer}
           initial="initial"

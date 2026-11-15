@@ -114,13 +114,19 @@ async function gnaniListen(lang: string): Promise<string> {
 let currentAudio: HTMLAudioElement | null = null;
 
 /** Stop anything currently playing (Gnani audio or browser voice). */
+let speakSeq = 0;
+let currentDone: (() => void) | null = null;
+
 export function stopSpeaking() {
+  speakSeq++;
   currentAudio?.pause();
   currentAudio = null;
+  const done = currentDone;
+  currentDone = null;
+  done?.();
   window.speechSynthesis?.cancel();
 }
 
-let speakSeq = 0;
 
 async function gnaniSpeak(text: string, lang: string): Promise<void> {
   const seq = ++speakSeq;
@@ -131,16 +137,19 @@ async function gnaniSpeak(text: string, lang: string): Promise<void> {
   });
   if (!r.ok) throw new Error(`TTS failed (${r.status})`);
   const blob = await r.blob();
-  if (seq !== speakSeq) return; // a newer reply superseded this one
+  if (seq !== speakSeq) return; // interrupted or superseded
   const url = URL.createObjectURL(blob);
-  stopSpeaking();
+  currentAudio?.pause();
+  window.speechSynthesis?.cancel();
   const audio = new Audio(url);
   currentAudio = audio;
   await new Promise<void>((resolve) => {
+    currentDone = resolve;
     audio.onended = () => resolve();
     audio.onerror = () => resolve();
     audio.play().catch(() => resolve());
   });
+  if (currentDone) currentDone = null;
   URL.revokeObjectURL(url);
 }
 

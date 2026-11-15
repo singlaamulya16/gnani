@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Icon } from '@/components/ui';
+import { startWalkthrough } from '@/components/tour/Walkthrough';
 
 const cols = [
   {
@@ -60,6 +61,9 @@ export function Footer() {
               </a>
             ))}
           </div>
+          <button type="button" onClick={() => { document.querySelector('[data-tour="sos"]')?.scrollIntoView({ block: 'center' }); startWalkthrough(); }} className="mt-4 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-accent hover:underline">
+            <Icon name="activity" size={15} /> Take the quick tour
+          </button>
         </div>
         {cols.map((c) => (
           <div key={c.title}>

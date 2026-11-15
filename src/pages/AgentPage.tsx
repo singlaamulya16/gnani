@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn';
 import { delay } from '@/lib/geo';
 import {
   agentStep,
+  COMPATIBLE,
   conditionLabel,
   GREETING,
   initialAgentState,
@@ -37,6 +38,8 @@ const TASK_META: Record<AgentTask, { title: string; icon: IconName; urgent?: boo
 const START_TILES: { text: string; label: string; icon: IconName; urgent?: boolean }[] = [
   { text: 'I need blood', label: 'Need blood', icon: 'droplet', urgent: true },
   { text: 'Ambulance chahiye', label: 'Ambulance', icon: 'ambulance', urgent: true },
+  { text: 'Accident hua hai', label: 'Accident', icon: 'siren', urgent: true },
+  { text: 'Delivery ka dard shuru ho gaya', label: 'Pregnancy', icon: 'heartPulse', urgent: true },
   { text: 'Nearest hospital', label: 'Hospital', icon: 'hospital' },
   { text: 'Doctor chahiye', label: 'Doctor', icon: 'stethoscope' },
   { text: 'Medicine chahiye', label: 'Medicine', icon: 'pill' },
@@ -68,6 +71,7 @@ export function AgentPage() {
   const [donors, setDonors] = useState<DonorMatch[]>([]);
   const [request, setRequest] = useState<SampleRequest | null>(null);
   const [eta, setEta] = useState<number | null>(null);
+  const [firstAid, setFirstAid] = useState<string[]>([]);
   const alive = useRef(true);
   const chatEnd = useRef<HTMLDivElement>(null);
   const busy = useRef(false);
@@ -87,7 +91,7 @@ export function AgentPage() {
 
   const runStep = async (i: number, fn: () => Promise<string | undefined>) => {
     setSteps((s) => s.map((x, j) => (j === i ? { ...x, status: 'running' } : x)));
-    await delay(500);
+    await delay(250);
     const detail = await fn();
     setSteps((s) => s.map((x, j) => (j === i ? { ...x, status: 'done', detail } : x)));
   };
@@ -101,41 +105,57 @@ export function AgentPage() {
       setDonors([]);
       setRequest(null);
       setEta(null);
+      if (st.task !== 'ambulance') setFirstAid([]);
 
       if (task === 'blood') {
+        const group = slots.group as BloodGroup | undefined;
         setSteps([
           { label: 'Confirming your location', status: 'pending' },
           { label: 'Searching blood banks near you', status: 'pending' },
-          { label: `Matching ${slots.group} donors nearby`, status: 'pending' },
-          { label: 'Creating the blood request', status: 'pending' },
-          { label: 'Alerting donors on Telegram (demo)', status: 'pending' },
+          ...(group
+            ? ([
+                { label: `Matching donors compatible with ${group}`, status: 'pending' },
+                { label: 'Creating the blood request', status: 'pending' },
+                { label: 'Alerting donors on Telegram (demo)', status: 'pending' },
+              ] as Step[])
+            : []),
         ]);
         await runStep(0, async () => locationLabel);
         let banks: Place[] = [];
         await runStep(1, async () => {
-          const r = await placesService.searchWithMeta({ near: coords, kind: 'blood_bank' });
+          const r = await placesService.searchWithMeta({ near: coords, kind: 'blood_bank', radiusM: 15000 });
           banks = r.places.slice(0, 4);
           setResults(banks);
           return `${banks.length} found`;
         });
+        const nearest = banks[0];
+        if (!group) {
+          if (hi) return `${banks.length} ब्लड बैंक मिले${nearest ? `, सबसे पास ${nearest.name}` : ''}। ब्लड ग्रुप बताइए ताकि मैं डोनर्स को अलर्ट कर सकूँ।`;
+          if (he) return `${banks.length} blood banks mile${nearest ? `, sabse paas ${nearest.name}` : ''}. Blood group batayiye taaki main donors ko alert kar sakun.`;
+          return `I found ${banks.length} blood banks${nearest ? `; the nearest is ${nearest.name}` : ''}. Tell me the blood group so I can alert donors.`;
+        }
         let matched: DonorMatch[] = [];
         await runStep(2, async () => {
-          matched = (await donorService.listNearby(coords, slots.group as BloodGroup)).slice(0, 4);
+          const ok = COMPATIBLE[group] ?? [group];
+          const all = await donorService.listNearby(coords);
+          matched = all
+            .filter((d) => ok.includes(d.bloodGroup))
+            .sort((a, b) => Number(b.bloodGroup === group) - Number(a.bloodGroup === group) || a.distanceKm - b.distanceKm)
+            .slice(0, 6);
           setDonors(matched);
-          return `${matched.length} available (demo donor${matched.length === 1 ? '' : 's'})`;
+          return `${matched.length} compatible donor${matched.length === 1 ? '' : 's'} (demo)`;
         });
         let req: SampleRequest | null = null;
         await runStep(3, async () => {
-          req = await requestService.createBloodRequest({ bloodGroup: slots.group as BloodGroup, units: slots.units ?? 1 });
+          req = await requestService.createBloodRequest({ bloodGroup: group, units: slots.units ?? 1 });
           setRequest(req);
-          return `#${req.id.slice(-6).toUpperCase()}`;
+          return `#${req.id.slice(-6).toUpperCase()}${slots.units ? ` · ${slots.units} units` : ''}`;
         });
         await runStep(4, async () => `${matched.length} donor${matched.length === 1 ? '' : 's'} notified`);
         if (req) requestService.simulateBloodProgress((req as SampleRequest).id, (r) => alive.current && setRequest(r));
-        const nearest = banks[0];
-        if (hi) return `हो गया। ${banks.length} ब्लड बैंक मिले${nearest ? `, सबसे पास ${nearest.name}, ${nearest.distanceKm} किलोमीटर` : ''}। ${matched.length} डोनर्स को अलर्ट भेज दिया है। कुछ और मदद चाहिए?`;
-        if (he) return `Ho gaya. ${banks.length} blood banks mile${nearest ? `, sabse paas ${nearest.name}, ${nearest.distanceKm} kilometer` : ''}. ${matched.length} donor${matched.length === 1 ? '' : 's'} ko alert bhej diya hai. Kuch aur madad chahiye?`;
-        return `Done. I found ${banks.length} blood banks${nearest ? `; the nearest is ${nearest.name}, ${nearest.distanceKm} km away` : ''}. ${matched.length} matching donor${matched.length === 1 ? ' has' : 's have'} been alerted. Anything else?`;
+        if (hi) return `हो गया। ${banks.length} ब्लड बैंक मिले${nearest ? `, सबसे पास ${nearest.name}, ${nearest.distanceKm} किलोमीटर` : ''}। ${matched.length} कम्पैटिबल डोनर्स को अलर्ट भेज दिया है।`;
+        if (he) return `Ho gaya. ${banks.length} blood banks mile${nearest ? `, sabse paas ${nearest.name}, ${nearest.distanceKm} kilometer` : ''}. ${matched.length} compatible donors ko alert bhej diya hai.`;
+        return `Done. ${banks.length} blood banks found${nearest ? `; nearest is ${nearest.name}, ${nearest.distanceKm} km away` : ''}. ${matched.length} compatible donors alerted.`;
       }
 
       if (task === 'ambulance') {
@@ -204,28 +224,45 @@ export function AgentPage() {
 
   const listenRef = useRef<() => Promise<void>>(async () => {});
 
+  const queue = useRef<string[]>([]);
   const handleUser = useCallback(
-    async (text: string) => {
-      if (!text.trim() || busy.current) return;
+    async (text: string, shown = false) => {
+      if (!text.trim()) return;
+      if (busy.current) {
+        // user interrupted: show it now, handle right after the current step
+        setMessages((m) => [...m, { id: ++msgId, from: 'user', text }]);
+        queue.current.push(text);
+        stopSpeaking();
+        return;
+      }
       busy.current = true;
-      setMessages((m) => [...m, { id: ++msgId, from: 'user', text }]);
+      if (!shown) setMessages((m) => [...m, { id: ++msgId, from: 'user', text }]);
       setMic('thinking');
       const turn = agentStep(agentRef.current, text, i18n.language);
       setAgent(turn.state);
       setQuick(turn.quick);
+      if (turn.firstAid?.length) setFirstAid(turn.firstAid);
       await say(turn.reply, turn.state.lang);
       if (turn.execute) {
         const summary = await execute(turn.state);
         if (!alive.current) return;
         setAgent((a) => ({ ...a, stage: 'done' }));
-        setQuick(['Ambulance bulao', 'Nearest hospital', 'Medicine chahiye']);
+        if (!turn.state.asking) setQuick(['Ambulance bulao', 'Nearest hospital', 'Medicine chahiye']);
         await say(summary, turn.state.lang);
       }
       busy.current = false;
+      const next = queue.current.shift();
+      if (next && alive.current) {
+        void handleUserRef.current(next, true);
+        return;
+      }
       if (alive.current && handsFreeRef.current) void listenRef.current();
     },
     [execute, i18n.language, say],
   );
+
+  const handleUserRef = useRef(handleUser);
+  handleUserRef.current = handleUser;
 
   const listen = useCallback(async () => {
     if (busy.current || voiceService.isListening()) return;
@@ -288,7 +325,7 @@ export function AgentPage() {
       : agent.task === 'ambulance'
         ? [
             { label: 'Emergency', value: s.condition ? conditionLabel(s.condition, 'en') : undefined },
-            { label: 'Patient conscious', value: s.conscious ? (s.conscious === 'yes' ? 'Yes' : 'No') : undefined },
+            ...(s.conscious ? [{ label: 'Patient conscious', value: s.conscious === 'yes' ? 'Yes' : 'No' }] : []),
             { label: 'Pickup location', value: locationLabel },
           ]
         : agent.task === 'doctor'
@@ -334,8 +371,7 @@ export function AgentPage() {
             <p className="mt-1 text-[13.5px] text-text-secondary">
               {agent.stage === 'intro' && 'Speak or tap. I will ask only what is needed and do the rest.'}
               {agent.stage === 'collect' && 'Collecting details…'}
-              {agent.stage === 'confirm' && 'Waiting for your confirmation'}
-              {agent.stage === 'execute' && 'Working on it…'}
+              {agent.stage === 'execute' && 'Acting now — no waiting'}
               {agent.stage === 'done' && 'Done. I will keep tracking the status below.'}
             </p>
           </div>
@@ -358,6 +394,23 @@ export function AgentPage() {
             </span>
             <Icon name="phone" size={22} />
           </a>
+        )}
+
+        {firstAid.length > 0 && (
+          <div className="rounded-2xl border-2 border-accent bg-accent-soft p-4">
+            <span className="flex items-center gap-2 font-[family-name:var(--font-display)] text-[16px] font-semibold">
+              <Icon name="shieldAlert" size={18} className="text-sos" />
+              First aid until help arrives{s.condition ? ` · ${conditionLabel(s.condition, 'en')}` : ''}
+            </span>
+            <ol className="mt-2.5 space-y-2">
+              {firstAid.map((a, i) => (
+                <li key={i} className="flex gap-3 text-[14.5px] leading-snug">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-accent">{i + 1}</span>
+                  {a}
+                </li>
+              ))}
+            </ol>
+          </div>
         )}
 
         {/* Start tiles */}
@@ -409,7 +462,7 @@ export function AgentPage() {
                   <span className="block text-[11.5px] font-medium uppercase tracking-wide text-text-secondary">{f.label}</span>
                   <span className={cn('mt-0.5 flex items-center gap-1.5 text-[15px] font-semibold', f.value ? 'text-text' : 'text-text-secondary/70')}>
                     {f.value ? <Icon name="checkCircle" size={15} className="text-success" /> : null}
-                    {f.value ?? 'Waiting…'}
+                    {f.value ?? (f.label === 'Blood group' || f.label === 'Emergency' ? 'Waiting…' : 'Optional')}
                   </span>
                 </motion.div>
               ))}
