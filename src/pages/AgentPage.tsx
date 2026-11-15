@@ -17,7 +17,7 @@ import { ambulanceService } from '@/services/ambulanceService';
 import { donorService, type DonorMatch } from '@/services/donorService';
 import { placesService } from '@/services/placesService';
 import { requestService } from '@/services/requestService';
-import { voiceService } from '@/services/voice/voiceService';
+import { stopSpeaking, voiceService } from '@/services/voice/voiceService';
 import { useAppStore } from '@/store/appStore';
 import type { BloodGroup, Place, SampleRequest } from '@/types/domain';
 
@@ -257,6 +257,7 @@ export function AgentPage() {
     return () => {
       alive.current = false;
       voiceService.stopListening();
+      stopSpeaking();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

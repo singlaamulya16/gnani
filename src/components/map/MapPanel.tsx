@@ -54,6 +54,7 @@ export function MapPanel({ className }: { className?: string }) {
   const placesMeta = useAppStore((s) => s.placesMeta);
   const [recenterKey, setRecenterKey] = useState(0);
   const [query, setQuery] = useState('');
+  const [scanning, setScanning] = useState(false);
   const hasMapboxDirections = Boolean(import.meta.env.VITE_MAPBOX_TOKEN);
 
   // Sync page → map filter (home = all; service pages = that service)
@@ -74,9 +75,20 @@ export function MapPanel({ className }: { className?: string }) {
       filters.includes('all')
         ? 'all'
         : (filters.filter((f) => f !== 'ai') as PlaceKind[]);
-    void placesService.searchWithMeta({ near: coords, kind }).then(({ places, meta }) => {
+    // Radar scan for at least ~1.6s so the search feels alive, then markers pop in
+    setScanning(true);
+    let cancelled = false;
+    const started = Date.now();
+    void placesService.searchWithMeta({ near: coords, kind }).then(async ({ places, meta }) => {
+      const wait = Math.max(0, 1600 - (Date.now() - started));
+      await new Promise((r) => setTimeout(r, wait));
+      if (cancelled) return;
       setPlaces(places, meta);
+      setScanning(false);
     });
+    return () => {
+      cancelled = true;
+    };
   }, [coords, filters, setPlaces]);
 
   useEffect(() => {
@@ -194,7 +206,19 @@ export function MapPanel({ className }: { className?: string }) {
         pitchMode={mapPitch}
         onSelect={setSelectedPlaceId}
         recenterKey={recenterKey}
+        scanning={scanning}
       />
+      {scanning && (
+        <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-full bg-primary px-4 py-1.5 text-[12.5px] font-semibold text-white shadow-[var(--shadow-float)]">
+          <span className="mr-1.5 inline-block h-2 w-2 animate-ping rounded-full bg-accent" />
+          Scanning nearby…
+        </div>
+      )}
+      {!scanning && visible.length > 0 && (
+        <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-full bg-surface px-4 py-1.5 text-[12.5px] font-semibold text-text shadow-[var(--shadow-float)]">
+          {visible.length} found · <span className="text-success">{visible.filter((p) => p.phone).length} reachable by phone</span>
+        </div>
+      )}
 
 
       <div className="absolute right-3 top-3 z-20 flex flex-col gap-1.5">

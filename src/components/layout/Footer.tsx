@@ -34,25 +34,7 @@ const cols = [
 
 export function Footer() {
   return (
-    <footer className="mt-16 bg-primary text-white">
-      {/* CTA strip */}
-      <div className="mx-auto max-w-6xl px-5 lg:px-10">
-        <div className="relative -top-10 flex flex-col items-start justify-between gap-4 rounded-[28px] bg-accent p-6 shadow-[var(--shadow-accent)] sm:flex-row sm:items-center lg:p-8">
-          <div>
-            <p className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight text-on-accent lg:text-[30px]">
-              In an emergency, every second counts.
-            </p>
-            <p className="mt-1 text-[14px] text-on-accent/80">Speak in your language. HelpMe does the rest.</p>
-          </div>
-          <Link
-            to="/agent"
-            className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full bg-sos px-6 text-[15px] font-bold text-white shadow-[var(--shadow-sos)]"
-          >
-            <Icon name="siren" size={18} /> Start SOS Agent
-          </Link>
-        </div>
-      </div>
-
+    <footer className="mt-16 bg-primary pt-12 text-white">
       <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-5 pb-10 sm:grid-cols-4 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-10">
         <div className="col-span-2 sm:col-span-4 lg:col-span-1">
           <Link to="/" className="flex items-center gap-2">

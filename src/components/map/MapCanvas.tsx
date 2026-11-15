@@ -37,9 +37,12 @@ interface MapCanvasProps {
   pitchMode: MapPitch;
   onSelect: (id: string) => void;
   recenterKey: number;
+  /** show the radar "searching" animation around the user */
+  scanning?: boolean;
 }
 
-function makeMarkerEl(place: Place, selected: boolean): HTMLButtonElement {
+function makeMarkerEl(place: Place, selected: boolean, popDelayMs: number | null): { wrap: HTMLDivElement; btn: HTMLButtonElement } {
+  const wrap = document.createElement('div');
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.setAttribute('aria-label', place.name);
@@ -64,7 +67,17 @@ function makeMarkerEl(place: Place, selected: boolean): HTMLButtonElement {
               : place.kind === 'ngo'
                 ? 'N'
                 : 'B';
-  return btn;
+  btn.style.position = 'relative';
+  if (place.phone) {
+    btn.classList.add('hm-contact');
+    btn.title = `${place.name} · tap to call or navigate`;
+  }
+  if (popDelayMs != null) {
+    btn.classList.add('hm-pin-pop');
+    btn.style.animationDelay = `${popDelayMs}ms`;
+  }
+  wrap.appendChild(btn);
+  return { wrap, btn };
 }
 
 function addRouteLayer(map: Map) {
@@ -94,11 +107,20 @@ export function MapCanvas({
   pitchMode,
   onSelect,
   recenterKey,
+  scanning = false,
 }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
   const markersRef = useRef<Marker[]>([]);
   const userMarkerRef = useRef<Marker | null>(null);
+  const scanningRef = useRef(scanning);
+  scanningRef.current = scanning;
+  const prevPlacesRef = useRef<Place[] | null>(null);
+
+  useEffect(() => {
+    const el = userMarkerRef.current?.getElement();
+    if (el) el.dataset.scanning = String(scanning);
+  }, [scanning]);
   const onSelectRef = useRef(onSelect);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [statusMsg, setStatusMsg] = useState('Loading map…');
@@ -197,10 +219,14 @@ export function MapCanvas({
 
     userMarkerRef.current?.remove();
     const wrap = document.createElement('div');
+    wrap.className = 'hm-user';
+    wrap.dataset.scanning = String(scanningRef.current);
     wrap.style.cssText = 'width:22px;height:22px;position:relative;';
     wrap.innerHTML = `
-      <span style="position:absolute;inset:-8px;border-radius:9999px;background:rgba(14,159,142,.28)"></span>
-      <span style="position:absolute;inset:0;border-radius:9999px;background:#0E9F8E;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.35)"></span>`;
+      <span class="hm-sweep"></span>
+      <span class="hm-ring"></span><span class="hm-ring"></span><span class="hm-ring"></span>
+      <span style="position:absolute;inset:-8px;border-radius:9999px;background:rgba(46,74,54,.22)"></span>
+      <span style="position:absolute;inset:0;border-radius:9999px;background:#2E4A36;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.35)"></span>`;
     userMarkerRef.current = new Marker({ element: wrap })
       .setLngLat([center.lng, center.lat])
       .addTo(map);
@@ -223,20 +249,30 @@ export function MapCanvas({
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
+    const freshList = prevPlacesRef.current !== places;
+    prevPlacesRef.current = places;
+    const ordered = [...places].sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0));
     places.forEach((place) => {
-      const btn = makeMarkerEl(place, place.id === selectedId);
+      const rank = ordered.indexOf(place);
+      const { wrap, btn } = makeMarkerEl(place, place.id === selectedId, freshList ? Math.min(rank, 40) * 45 : null);
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         onSelectRef.current(place.id);
       });
       markersRef.current.push(
-        new Marker({ element: btn, anchor: 'center' })
+        new Marker({ element: wrap, anchor: 'center' })
           .setLngLat([place.lng, place.lat])
           .addTo(map),
       );
     });
 
     const selected = places.find((p) => p.id === selectedId);
+    if (freshList && !selected && ordered.length) {
+      const near = ordered.slice(0, 8);
+      const bounds = new LngLatBounds([center.lng, center.lat], [center.lng, center.lat]);
+      near.forEach((p) => bounds.extend([p.lng, p.lat]));
+      map.fitBounds(bounds, { padding: { top: 70, bottom: 70, left: 50, right: 50 }, maxZoom: 15, duration: 900 });
+    }
     if (selected) {
       map.flyTo({
         center: [selected.lng, selected.lat],

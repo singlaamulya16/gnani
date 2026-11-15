@@ -62,14 +62,14 @@ export function PharmacyPage() {
         </Button>
       </Link>
       {loading || (placesMeta?.refreshing && list.length === 0) ? (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <PlaceCardSkeleton />
           <PlaceCardSkeleton />
         </div>
       ) : list.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {list.map((place) => (
             <PlaceCard
               key={place.id}

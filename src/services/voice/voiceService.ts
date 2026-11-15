@@ -113,15 +113,27 @@ async function gnaniListen(lang: string): Promise<string> {
 
 let currentAudio: HTMLAudioElement | null = null;
 
+/** Stop anything currently playing (Gnani audio or browser voice). */
+export function stopSpeaking() {
+  currentAudio?.pause();
+  currentAudio = null;
+  window.speechSynthesis?.cancel();
+}
+
+let speakSeq = 0;
+
 async function gnaniSpeak(text: string, lang: string): Promise<void> {
+  const seq = ++speakSeq;
   const r = await fetch(apiUrl('/api/voice/tts'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text, lang }),
   });
   if (!r.ok) throw new Error(`TTS failed (${r.status})`);
-  const url = URL.createObjectURL(await r.blob());
-  currentAudio?.pause();
+  const blob = await r.blob();
+  if (seq !== speakSeq) return; // a newer reply superseded this one
+  const url = URL.createObjectURL(blob);
+  stopSpeaking();
   const audio = new Audio(url);
   currentAudio = audio;
   await new Promise<void>((resolve) => {
@@ -146,14 +158,16 @@ export const voiceService: VoiceService = {
     return isRecording() || browserRec !== null;
   },
   async speak(text, lang) {
+    // One voice only: Gnani Timbre when available. Never mix in the browser's (often male) voice.
     if ((await detectProvider()) === 'gnani') {
       try {
         await gnaniSpeak(text, lang);
-        return;
       } catch (err) {
-        console.warn('[voice] Gnani TTS failed, using browser voice', err);
+        console.warn('[voice] Gnani TTS failed (text still shown on screen)', err);
       }
+      return;
     }
+    stopSpeaking();
     await browserSpeak(text, lang);
   },
   interpret: parseIntent,

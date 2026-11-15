@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { ToastViewport } from '@/components/ui';
 import { MapPanel } from '@/components/map/MapPanel';
-import { VoiceTag } from '@/components/voice/VoiceTag';
 import { useGeolocationBootstrap } from '@/hooks/useGeolocation';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { fadeOnly, fastTransition, pageVariants } from '@/lib/motion';
@@ -75,7 +74,6 @@ export function AppShell() {
         )}
       </div>
 
-      {location.pathname !== '/voice' && location.pathname !== '/agent' && <VoiceTag />}
       {!desktop && <BottomNav />}
     </div>
   );

@@ -115,12 +115,12 @@ export function BloodPage() {
             </button>
           </div>
           {loading ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <PlaceCardSkeleton />
               <PlaceCardSkeleton />
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {places.filter((p) => p.kind === 'blood_bank').map((place) => (
                 <PlaceCard
                   key={place.id}
@@ -149,8 +149,8 @@ export function BloodPage() {
                   </span>
                 </button>
               ))}
-              {!places.some((p) => p.kind === 'blood_bank') && !donors.length && <EmptyState />}
-              <Button fullWidth onClick={() => void request()}>
+              {!places.some((p) => p.kind === 'blood_bank') && !donors.length && <div className="sm:col-span-2"><EmptyState /></div>}
+              <Button fullWidth className="sm:col-span-2" onClick={() => void request()}>
                 {t('blood.sendRequest')}
               </Button>
             </div>
