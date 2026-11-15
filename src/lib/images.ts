@@ -3,4 +3,9 @@ export const IMAGES = {
   heroDoctor: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA0EAN-WqGNG41I-mnJMVIvzu-ky0dBQsphCsljRmktgS85bv9MeqIqB-X80w1IDVJcxESh8x3tXHWsGPvMEp9ipPA7iJUHhpH23ek3t6IiISfoLYpmtFNMDpALi1mIPbQesmR7bePJ8fXuO_Tz-FlpBOalJtQq5MU22WvPCC2GVZHzhf9rRIveMV2b7c_-6cHBJZFqRihn2xPiRHS0GW04GGWH2WlgxuKoz9U4GgNl',
   doctorMale: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBpoh33f4I-3kmVyZT85VnRgucgwJqYrX1V7DeYWVUgoL-xqj7mw-v_fw6BaSMqHm3eM1y7Cdon-tP12TFr2MFK_ZOLfP4UNocTz0Uqcgr1NeHwiNrRfLd91WhqPB4-aYYcpXXxFST1_LQX4GQj8pPEjBQV4W_oMJKDXBWHOEHzxQ3P_RN3oKBQ-aQ2qOGzZx5Fn96oUuTHAXwM2aDvN-0cEvUmYKkKB_5fgk3hshv0',
   clinic: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDFr46MDRy_bZ8hZBaTdhG0aYPb8mbsKMQZDMn9v8WMYyqd7nRp_wo1agH4hIlksZo2tIBnpYczTeIlDQbL79fdfnzgkknHD4jEUwKls96J2Z7_uyPBysmoNEAQOww1J1LSpYQ9v_ZaOEEjc0Qhm9_ZpOBhJRHS0oeLPIw4G5Dbdo-aRnGEOZcqnVw1s0TfnO06WXJ-jXsqaImBqSHB01ygizK2nrBGEVgn4LOu9qlN',
+  // Real photos from Wikimedia Commons (freely licensed), served via Special:FilePath
+  hospital: 'https://commons.wikimedia.org/wiki/Special:FilePath/The_Calcutta_Medical_Research_Institute_(CMRI).jpg?width=600',
+  ambulance: 'https://commons.wikimedia.org/wiki/Special:FilePath/108_Ambulance.jpg?width=600',
+  blood: 'https://commons.wikimedia.org/wiki/Special:FilePath/Airmen_give_blood_140212-F-LX214-005.jpg?width=600',
+  pharmacy: 'https://commons.wikimedia.org/wiki/Special:FilePath/Pharmacy_multilingual_sign_in_Bangalore,_India.jpg?width=600',
 } as const;

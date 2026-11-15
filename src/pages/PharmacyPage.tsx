@@ -13,6 +13,7 @@ import {
 } from '@/components/ui';
 import { placesService } from '@/services/placesService';
 import { useAppStore } from '@/store/appStore';
+import { PageVoice } from '@/components/voice/PageVoice';
 
 export function PharmacyPage() {
   const { t } = useTranslation();
@@ -45,6 +46,7 @@ export function PharmacyPage() {
   return (
     <div className="flex flex-col gap-3 pb-3">
       <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">{t('pages.pharmacy')}</h1>
+      <PageVoice page="pharmacy" />
       <EmergencyBanner />
       <DataStatusBanner
         offline={placesMeta?.offline}

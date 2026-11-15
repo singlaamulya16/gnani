@@ -1,5 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Icon, type IconName } from '@/components/ui';
 import { cn } from '@/lib/cn';
@@ -279,6 +280,8 @@ export function AgentPage() {
 
   // Greet once, then start listening (hands-free)
   const greeted = useRef(false);
+  const [params] = useSearchParams();
+  const handoff = params.get('q');
   useEffect(() => {
     alive.current = true;
     if (greeted.current) return () => {
@@ -287,6 +290,15 @@ export function AgentPage() {
     };
     greeted.current = true;
     const lang = agentRef.current.lang;
+    if (handoff) {
+      // request handed over from another page's voice button: act on it right away
+      void handleUserRef.current(handoff);
+      return () => {
+        alive.current = false;
+        voiceService.stopListening();
+        stopSpeaking();
+      };
+    }
     void (async () => {
       await say(GREETING[lang], lang);
       if (alive.current && handsFreeRef.current) void listenRef.current();

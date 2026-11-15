@@ -39,6 +39,8 @@ interface MapCanvasProps {
   recenterKey: number;
   /** show the radar "searching" animation around the user */
   scanning?: boolean;
+  /** true = zoom in on the user; false = go back to the previous view */
+  focusUser?: boolean;
 }
 
 function makeMarkerEl(place: Place, selected: boolean, popDelayMs: number | null): { wrap: HTMLDivElement; btn: HTMLButtonElement } {
@@ -108,7 +110,9 @@ export function MapCanvas({
   onSelect,
   recenterKey,
   scanning = false,
+  focusUser = false,
 }: MapCanvasProps) {
+  const savedView = useRef<{ center: [number, number]; zoom: number; pitch: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
   const markersRef = useRef<Marker[]>([]);
@@ -116,6 +120,21 @@ export function MapCanvas({
   const scanningRef = useRef(scanning);
   scanningRef.current = scanning;
   const prevPlacesRef = useRef<Place[] | null>(null);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (focusUser) {
+      const c = map.getCenter();
+      savedView.current = { center: [c.lng, c.lat], zoom: map.getZoom(), pitch: map.getPitch() };
+      map.flyTo({ center: [center.lng, center.lat], zoom: 16.5, pitch: 50, duration: 1200 });
+    } else if (savedView.current) {
+      const v = savedView.current;
+      savedView.current = null;
+      map.flyTo({ center: v.center, zoom: v.zoom, pitch: v.pitch, duration: 1000 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusUser]);
 
   useEffect(() => {
     const el = userMarkerRef.current?.getElement();

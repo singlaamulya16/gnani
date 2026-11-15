@@ -12,6 +12,7 @@ import {
 import { placesService } from '@/services/placesService';
 import { useAppStore } from '@/store/appStore';
 import { EMERGENCY_NUMBERS } from '@/types/domain';
+import { PageVoice } from '@/components/voice/PageVoice';
 
 export function HospitalsPage() {
   const { t } = useTranslation();
@@ -48,6 +49,7 @@ export function HospitalsPage() {
       <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight tracking-tight">
         {t('pages.hospitals')}
       </h1>
+      <PageVoice page="hospital" />
       <EmergencyBanner />
       <DataStatusBanner
         offline={placesMeta?.offline}

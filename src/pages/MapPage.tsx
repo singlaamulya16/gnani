@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EmergencyBanner, EmptyState, PlaceCard, PlaceCardSkeleton, SearchField } from '@/components/ui';
 import { useAppStore } from '@/store/appStore';
+import { PageVoice } from '@/components/voice/PageVoice';
 
 export function MapPage() {
   const { t } = useTranslation();
@@ -22,6 +23,7 @@ export function MapPage() {
   return (
     <div className="flex flex-col gap-3 pb-3">
       <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">{t('pages.fullMap')}</h1>
+      <PageVoice page="map" />
       <EmergencyBanner />
       <SearchField value={q} onChange={setQ} placeholder="Search hospitals, pharmacies, blood banks…" />
       <p className="text-[12.5px] text-text-secondary">

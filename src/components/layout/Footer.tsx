@@ -87,6 +87,7 @@ export function Footer() {
           <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span>Voice by <span className="font-semibold text-accent">Gnani AI</span> (Prisma + Timbre)</span>
             <span>Map data © OpenStreetMap contributors</span>
+            <span>Photos: Wikimedia Commons (free licences)</span>
             <span>Demo donors are simulated</span>
           </span>
         </div>

@@ -17,6 +17,7 @@ import { placesService } from '@/services/placesService';
 import { requestService } from '@/services/requestService';
 import { useAppStore } from '@/store/appStore';
 import type { SampleRequest } from '@/types/domain';
+import { PageVoice } from '@/components/voice/PageVoice';
 
 type Phase = 'form' | 'results' | 'tracking';
 
@@ -75,6 +76,7 @@ export function BloodPage() {
   return (
     <div className="flex flex-col gap-3 pb-3">
       <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">{t('pages.blood')}</h1>
+      <PageVoice page="blood" />
       <EmergencyBanner />
 
       {phase === 'form' && (

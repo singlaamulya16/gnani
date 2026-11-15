@@ -35,7 +35,11 @@ const routeKind: Record<string, PlaceKind | PlaceKind[] | 'all'> = {
   '/voice': 'all',
 };
 
-export function MapPanel({ className }: { className?: string }) {
+export function MapPanel({ className, variant = 'default' }: { className?: string; variant?: 'default' | 'sidebar' }) {
+  const sidebar = variant === 'sidebar';
+  const locationLabel = useAppStore((s) => s.locationLabel);
+  const gpsAccuracyM = useAppStore((s) => s.gpsAccuracyM);
+  const [focusUser, setFocusUser] = useState(false);
   const { t } = useTranslation();
   const location = useLocation();
   const coords = useAppStore((s) => s.coords);
@@ -143,9 +147,9 @@ export function MapPanel({ className }: { className?: string }) {
   };
 
   return (
-    <div className={cn('flex h-full min-h-0 w-full flex-col gap-3', className)}>
+    <div className={cn('flex h-full min-h-0 w-full gap-3', sidebar ? 'flex-col-reverse lg:flex-row' : 'flex-col', className)}>
       {/* Toolbar outside the map: filters + search */}
-      <div className="relative z-30 flex items-center gap-2">
+      <div className={cn('relative z-30 flex items-center gap-2', sidebar && 'hidden')}>
       <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
           {chips.map((chip) => (
             <FilterChip
@@ -196,7 +200,7 @@ export function MapPanel({ className }: { className?: string }) {
 
     <section
       aria-label="Live emergency map"
-      className="relative min-h-[200px] w-full flex-1 overflow-hidden rounded-[28px] border border-border bg-[#dce8f5] shadow-[var(--shadow-float)]"
+      className={cn('relative w-full flex-1 overflow-hidden rounded-[28px] border border-border bg-[#dce8f5] shadow-[var(--shadow-float)]', sidebar ? 'min-h-[420px] lg:min-h-0' : 'min-h-[200px]')}
     >
       <MapCanvas
         center={coords}
@@ -206,6 +210,7 @@ export function MapPanel({ className }: { className?: string }) {
         pitchMode={mapPitch}
         onSelect={setSelectedPlaceId}
         recenterKey={recenterKey}
+        focusUser={focusUser}
         scanning={scanning}
       />
       {scanning && (
@@ -303,6 +308,89 @@ export function MapPanel({ className }: { className?: string }) {
         {hasMapboxDirections ? ` · ${t('map.mapboxAttribution')}` : ''}
       </div>
     </section>
+
+      {sidebar && (
+        <aside className="relative z-30 flex w-full shrink-0 flex-col gap-3 lg:w-[22%] lg:min-w-[230px]">
+          {/* your location */}
+          <div className="rounded-2xl bg-primary p-4 text-white shadow-[var(--shadow-voice)]">
+            <span className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide text-accent">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+              </span>
+              Your location
+            </span>
+            <span className="mt-1 block font-[family-name:var(--font-display)] text-[16px] font-semibold leading-tight">{locationLabel}</span>
+            <span className="text-[12px] text-white/70">
+              {gpsAccuracyM != null ? `GPS ± ${gpsAccuracyM} m` : 'Approximate — allow GPS for exact spot'}
+            </span>
+            <button
+              type="button"
+              onClick={() => setFocusUser((f) => !f)}
+              className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-accent text-[13px] font-semibold text-primary-dark"
+            >
+              <Icon name={focusUser ? 'map' : 'locateFixed'} size={16} />
+              {focusUser ? 'Back to results' : 'Zoom to me'}
+            </button>
+          </div>
+
+          {/* search */}
+          <div className="relative">
+            <Icon name="search" size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-primary" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && matches[0]) pick(matches[0]);
+              }}
+              placeholder="Search places…"
+              className="h-11 w-full rounded-full border-2 border-accent/50 bg-surface pl-10 pr-3 text-[13.5px] shadow-[var(--shadow-card)] outline-none focus:border-primary"
+            />
+            {query.trim() && (
+              <div className="absolute left-0 right-0 top-12 z-40 overflow-hidden rounded-2xl border border-border bg-surface shadow-[var(--shadow-float)]">
+                {matches.length ? (
+                  matches.map((p) => (
+                    <button key={p.id} type="button" onClick={() => pick(p)} className="flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-[13px] hover:bg-accent-soft">
+                      <span className="truncate font-semibold">{p.name}</span>
+                      <span className="shrink-0 text-[12px] text-text-secondary">{Number(p.distanceKm).toFixed(1)} km</span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="px-3.5 py-3 text-[13px] text-text-secondary">No matching places nearby</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 6 filters */}
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+            {chips.map((chip) => {
+              const active =
+                chip.id === 'all' ? filters.includes('all') : filters.includes(chip.id) && !filters.includes('all');
+              const count = chip.id === 'all' ? places.length : places.filter((p) => p.kind === chip.id || (chip.id === 'clinic' && p.kind === 'doctor')).length;
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  onClick={() => toggleFilter(chip.id)}
+                  className={cn(
+                    'flex h-11 items-center justify-between gap-2 rounded-xl border-2 px-3 text-[13.5px] font-semibold transition-colors',
+                    active ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text hover:border-accent',
+                  )}
+                >
+                  <span className="flex items-center gap-2">
+                    <Icon name={chip.icon} size={16} className={active ? 'text-accent' : 'text-primary'} />
+                    {t(chip.labelKey)}
+                  </span>
+                  {count > 0 && (
+                    <span className={cn('rounded-full px-2 py-0.5 text-[11px]', active ? 'bg-white/15 text-accent' : 'bg-accent-soft text-on-accent')}>{count}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+      )}
     </div>
   );
 }
