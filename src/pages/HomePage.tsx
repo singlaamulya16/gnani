@@ -1,11 +1,12 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DataStatusBanner, Icon, SmartImage, type IconName } from '@/components/ui';
 import { IMAGES } from '@/lib/images';
 import { MapPanel } from '@/components/map/MapPanel';
 import { Walkthrough } from '@/components/tour/Walkthrough';
+import { EvaluationModal } from '@/components/evaluation/EvaluationModal';
 import { staggerContainer, staggerItem } from '@/lib/motion';
 import { placesService } from '@/services/placesService';
 import { useAppStore, type ServiceFilter } from '@/store/appStore';
@@ -46,6 +47,7 @@ export function HomePage() {
   const setActiveFilters = useAppStore((s) => s.setActiveFilters);
   const placesMeta = useAppStore((s) => s.placesMeta);
   const places = useAppStore((s) => s.places);
+  const [evalOpen, setEvalOpen] = useState(false);
 
   useEffect(() => {
     void placesService.searchWithMeta({ near: coords, kind: 'all' }).then(({ places, meta }) => {
@@ -64,6 +66,21 @@ export function HomePage() {
       <Walkthrough />
       {/* ---------- HERO (full screen) ---------- */}
       <section className="relative overflow-hidden">
+        {/* Evaluation tab — right side of the hero only */}
+        <button
+          type="button"
+          onClick={() => setEvalOpen(true)}
+          className="group absolute right-0 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-2xl bg-primary px-2.5 py-4 text-white shadow-[var(--shadow-voice)] transition-transform hover:-translate-x-1"
+          aria-label="Open evaluation: video, workflow and full details"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-primary-dark">
+            <Icon name="listChecks" size={17} strokeWidth={2.25} />
+          </span>
+          <span className="font-[family-name:var(--font-display)] text-[14px] font-semibold tracking-wide" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+            Evaluation
+          </span>
+        </button>
+        <EvaluationModal open={evalOpen} onClose={() => setEvalOpen(false)} />
         <div className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-accent-soft blur-3xl" />
         <div className="pointer-events-none absolute -left-32 bottom-0 h-[360px] w-[360px] rounded-full bg-primary-soft blur-3xl" />
       <div className="relative mx-auto grid min-h-[calc(100dvh-4rem-56px)] w-full max-w-6xl grid-cols-1 items-center gap-8 px-5 py-8 lg:grid-cols-[1.1fr_1fr] lg:px-10">
