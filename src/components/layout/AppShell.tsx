@@ -32,9 +32,9 @@ export function AppShell() {
       <TopBar />
       <ToastViewport />
 
-      <div className="relative flex min-h-0 flex-1 pt-14 lg:pb-0">
+      <div className="relative flex min-h-0 flex-1 pt-16 lg:pb-0">
         {desktop ? (
-          <div className="mx-auto flex h-[calc(100dvh-3.5rem)] w-full max-w-[1440px]">
+          <div className="mx-auto flex h-[calc(100dvh-4rem)] w-full max-w-[1440px]">
             <ContentPanel className="lg:w-1/2">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -58,7 +58,7 @@ export function AppShell() {
         ) : (
           <div
             data-app-shell-main
-            className="relative h-[calc(100dvh-3.5rem)] w-full overflow-hidden"
+            className="relative h-[calc(100dvh-4rem)] w-full overflow-hidden"
           >
             {/* Top 50%: live map */}
             <MapPanel className="h-1/2 min-h-[220px]" />

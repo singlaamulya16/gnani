@@ -24,7 +24,8 @@
     "emptyTitle": "Nothing here yet",
     "emptyDescription": "Try another filter or check back shortly.",
     "comingSoon": "This screen is ready for content next.",
-    "call112": "For emergencies call 112"
+    "call112": "For emergencies call 112",
+    "open": "Open"
   },
   "onboarding": {
     "badge": "24/7 Pan-India Dispatch",
@@ -51,7 +52,16 @@
     "donorCta": "Become a blood donor",
     "donorSub": "Save lives in your neighbourhood",
     "talkTitle": "Talk to HelpMe",
-    "talkSub": "Speak in any Indian language"
+    "talkSub": "Speak in any Indian language",
+    "hello": "Namaste!",
+    "heroA": "Emergency help,",
+    "heroB": "one sentence",
+    "heroC": "away.",
+    "heroBody": "Speak in Hindi, English or Hinglish. HelpMe finds hospitals, blood, doctors and ambulances near you, in seconds.",
+    "findHospitals": "Nearest hospital",
+    "poweredBy": "Voice powered by Gnani AI · Prisma + Timbre",
+    "helpWord": "Help",
+    "helpRest": "near you"
   },
   "services": {
     "ambulance": "Ambulance",

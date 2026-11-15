@@ -82,7 +82,7 @@ export function BottomSheet({ children }: BottomSheetProps) {
       >
         <span className="h-1 w-9 rounded-full bg-surface-high" />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-20">{children}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-24 pt-1">{children}</div>
     </motion.section>
   );
 }

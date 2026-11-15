@@ -21,7 +21,7 @@ export function HospitalDashboardPage() {
 
   return (
     <div className="flex flex-col gap-3 pb-3">
-      <h1 className="font-[family-name:var(--font-sans)] text-sm font-bold">
+      <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">
         {t('pages.hospitalDash')}
       </h1>
       <p className="text-[12px] text-text-secondary">Sample City Hospital (Demo)</p>

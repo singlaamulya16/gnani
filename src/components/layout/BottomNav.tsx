@@ -26,7 +26,7 @@ export function BottomNav() {
               end={item.end}
               className={({ isActive }) =>
                 cn(
-                  'flex h-full flex-col items-center justify-center gap-0 text-[10px] font-semibold transition-colors',
+                  'flex h-full flex-col items-center justify-center gap-0 text-[11.5px] font-semibold transition-colors',
                   isActive ? 'text-primary' : 'text-text-secondary',
                 )
               }

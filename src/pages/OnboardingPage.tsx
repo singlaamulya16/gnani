@@ -63,7 +63,7 @@ export function OnboardingPage() {
           {step === 'lang' ? (
             <>
               <div>
-                <h1 className="font-[family-name:var(--font-sans)] text-sm font-bold tracking-tight lg:text-[32px]">
+                <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight tracking-tight lg:text-[32px]">
                   {t('onboarding.title')}
                 </h1>
                 <p className="mt-1 text-text-secondary">{t('onboarding.hint')}</p>
@@ -112,7 +112,7 @@ export function OnboardingPage() {
           ) : (
             <>
               <div>
-                <h1 className="font-[family-name:var(--font-sans)] text-sm font-bold tracking-tight">
+                <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight tracking-tight">
                   {t('onboarding.locationTitle')}
                 </h1>
                 <p className="mt-2 text-text-secondary">{t('onboarding.locationBody')}</p>

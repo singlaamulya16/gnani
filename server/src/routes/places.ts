@@ -49,7 +49,7 @@ placesRouter.get('/', async (req, res) => {
   const q = req.query.q ? String(req.query.q) : undefined;
   const requestedRadius = req.query.radius ? Number(req.query.radius) : RADIUS_STEPS[0]!;
 
-  const ingest = await ensureAreaIngested(lat, lng, 10_000);
+  const ingest = await ensureAreaIngested(lat, lng, 6_000);
   const refreshing = ingest.refreshing || isAreaRefreshing(lat, lng);
 
   let usedRadius = requestedRadius;

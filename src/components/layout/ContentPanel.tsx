@@ -10,7 +10,7 @@ export function ContentPanel({ children, className }: ContentPanelProps) {
   return (
     <section
       className={cn(
-        'flex h-full min-h-0 w-full flex-col overflow-y-auto bg-bg lg:w-1/2 lg:border-r lg:border-border lg:bg-surface lg:px-3 lg:py-2',
+        'flex h-full min-h-0 w-full flex-col overflow-y-auto overflow-x-hidden bg-bg lg:w-1/2 lg:border-r lg:border-border lg:bg-bg lg:px-6 lg:py-5',
         className,
       )}
     >

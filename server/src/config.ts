@@ -15,7 +15,7 @@ export const config = {
   port: Number(process.env.PORT ?? 3001),
   databaseUrl: process.env.DATABASE_URL?.trim() || '',
   overpassEndpoints: (process.env.OVERPASS_ENDPOINTS ??
-    'https://overpass-api.de/api/interpreter,https://overpass.kumi.systems/api/interpreter,https://overpass.openstreetmap.ru/api/interpreter')
+    'https://overpass-api.de/api/interpreter,https://maps.mail.ru/osm/tools/overpass/api/interpreter,https://overpass.kumi.systems/api/interpreter,https://overpass.private.coffee/api/interpreter')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),

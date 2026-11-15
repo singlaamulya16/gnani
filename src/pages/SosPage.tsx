@@ -47,7 +47,7 @@ export function SosPage() {
 
   return (
     <div className="flex flex-col items-center gap-3 py-2 text-center">
-      <h1 className="font-[family-name:var(--font-sans)] text-sm font-bold text-sos">
+      <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight text-sos">
         {t('sos.title')}
       </h1>
       <EmergencyBanner />

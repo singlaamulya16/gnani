@@ -140,7 +140,7 @@ export function MapPanel({ className }: { className?: string }) {
           type="button"
           aria-label={t('map.toggle3d')}
           onClick={() => setMapPitch(mapPitch === '3d' ? '2d' : '3d')}
-          className="glass flex h-8 items-center gap-1 rounded-full px-2.5 text-[10px] font-bold text-text shadow-[var(--shadow-card)]"
+          className="glass flex h-8 items-center gap-1 rounded-full px-2.5 text-[11.5px] font-bold text-text shadow-[var(--shadow-card)]"
         >
           <Icon name="layers3" size={13} className="text-primary" />
           {mapPitch === '3d' ? '3D' : '2D'}
@@ -158,37 +158,37 @@ export function MapPanel({ className }: { className?: string }) {
       {(usingSampleLocation || placesMeta?.offline || placesMeta?.refreshing || selected || route) && (
         <div className="absolute bottom-14 left-2.5 right-2.5 z-20 space-y-1.5 lg:bottom-3 lg:right-auto lg:max-w-sm">
           {usingSampleLocation && (
-            <div className="glass rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-text-secondary shadow-[var(--shadow-card)]">
+            <div className="glass rounded-lg px-2.5 py-1.5 text-[11.5px] font-semibold text-text-secondary shadow-[var(--shadow-card)]">
               {t('map.sampleLocation')}
             </div>
           )}
           {placesMeta?.offline && (
-            <div className="glass rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-sos shadow-[var(--shadow-card)]">
+            <div className="glass rounded-lg px-2.5 py-1.5 text-[11.5px] font-semibold text-sos shadow-[var(--shadow-card)]">
               {t('places.offlineBanner')}
             </div>
           )}
           {placesMeta?.refreshing && !placesMeta.offline && (
-            <div className="glass rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-primary shadow-[var(--shadow-card)]">
+            <div className="glass rounded-lg px-2.5 py-1.5 text-[11.5px] font-semibold text-primary shadow-[var(--shadow-card)]">
               {t('places.findingHelp')}
             </div>
           )}
           {selected && route && (
             <div className="glass rounded-lg px-2.5 py-2 shadow-[var(--shadow-float)]">
               <p className="truncate text-xs font-bold text-text">{selected.name}</p>
-              <p className="mt-0.5 text-[10px] text-text-secondary">
+              <p className="mt-0.5 text-[11.5px] text-text-secondary">
                 {route.distanceKm.toFixed(1)} {t('common.km')} · {route.durationMin} {t('common.min')} ·{' '}
                 {selected.address}
               </p>
               {selected.phone ? (
                 <a
                   href={`tel:${selected.phone.replace(/\s/g, '')}`}
-                  className="mt-1.5 inline-flex min-h-8 items-center gap-1 rounded-full bg-primary px-2.5 text-[10px] font-bold text-on-primary"
+                  className="mt-1.5 inline-flex min-h-8 items-center gap-1 rounded-full bg-primary px-2.5 text-[11.5px] font-bold text-on-primary"
                 >
                   <Icon name="phone" size={12} />
                   {t('common.call')} {selected.phone}
                 </a>
               ) : (
-                <p className="mt-1.5 text-[10px] font-semibold text-text-secondary">
+                <p className="mt-1.5 text-[11.5px] font-semibold text-text-secondary">
                   {t('places.phoneUnavailable')}
                 </p>
               )}
@@ -197,7 +197,7 @@ export function MapPanel({ className }: { className?: string }) {
         </div>
       )}
 
-      <div className="pointer-events-none absolute bottom-1 left-2 z-10 max-w-[70%] rounded bg-surface/85 px-1.5 py-0.5 text-[9px] font-semibold leading-snug text-text-secondary">
+      <div className="pointer-events-none absolute bottom-1 left-2 z-10 max-w-[70%] rounded bg-surface/85 px-1.5 py-0.5 text-[11px] font-semibold leading-snug text-text-secondary">
         {t('map.osmAttribution')}
         {hasMapboxDirections ? ` · ${t('map.mapboxAttribution')}` : ''}
       </div>

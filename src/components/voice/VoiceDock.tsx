@@ -30,7 +30,7 @@ export function VoiceDock({ floating, className }: VoiceDockProps) {
       className={cn(
         floating
           ? 'absolute bottom-2 left-3 right-3 z-20 lg:left-4 lg:right-4'
-          : 'border-t border-border bg-surface p-2.5',
+          : 'border-t border-border bg-bg p-3',
         className,
       )}
     >
@@ -40,15 +40,15 @@ export function VoiceDock({ floating, className }: VoiceDockProps) {
         onClick={() => void run()}
         whileTap={{ scale: 0.99 }}
         className={cn(
-          'flex min-h-11 w-full items-center justify-between gap-2 rounded-xl px-3 text-left shadow-[var(--shadow-voice)]',
-          floating ? 'glass' : 'bg-primary-soft',
+          'flex min-h-14 w-full items-center justify-between gap-2 rounded-full bg-primary py-2 pl-2 pr-4 text-left shadow-[var(--shadow-voice)]',
+          voiceState === 'listening' && 'ring-4 ring-accent/50',
         )}
       >
         <span className="flex items-center gap-2">
-          <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-primary text-on-primary shadow-md">
+          <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-accent text-primary-dark shadow-md">
             {!reduce && voiceState === 'idle' && (
               <motion.span
-                className="absolute inset-0 rounded-full bg-primary/40"
+                className="absolute inset-0 rounded-full bg-accent/50"
                 animate={{ scale: [1, 1.35, 1], opacity: [0.5, 0, 0.5] }}
                 transition={{ duration: 2.2, repeat: Infinity }}
               />
@@ -56,10 +56,10 @@ export function VoiceDock({ floating, className }: VoiceDockProps) {
             <Icon name="mic" size={18} />
           </span>
           <span>
-            <span className="block font-[family-name:var(--font-sans)] text-sm font-bold text-text">
+            <span className="block font-[family-name:var(--font-display)] text-[15px] font-semibold text-white">
               {t('home.talkTitle')}
             </span>
-            <span className="block text-[11px] text-primary">{label}</span>
+            <span className="block text-[12px] text-accent">{label}</span>
           </span>
         </span>
 
@@ -76,14 +76,14 @@ export function VoiceDock({ floating, className }: VoiceDockProps) {
               {[0.4, 1, 0.7, 0.35, 0.85].map((h, i) => (
                 <motion.span
                   key={i}
-                  className="w-1 rounded-full bg-primary"
+                  className="w-1 rounded-full bg-accent"
                   animate={reduce ? { height: 8 } : { height: [6, 18 * h, 8, 16 * h, 6] }}
                   transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.08 }}
                 />
               ))}
             </motion.span>
           ) : (
-            <Icon name="chevronRight" size={20} className="text-primary" />
+            <Icon name="chevronRight" size={20} className="text-accent" />
           )}
         </AnimatePresence>
       </motion.button>

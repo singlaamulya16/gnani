@@ -16,3 +16,4 @@ export { SOSButton } from './SOSButton';
 export { StatusTimeline, type TimelineStep } from './StatusTimeline';
 export { Stepper } from './Stepper';
 export { ToastViewport, useToastStore } from './Toast';
+export { SmartImage } from './SmartImage';

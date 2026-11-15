@@ -57,7 +57,7 @@ export function ServiceCard({
         <span className="block font-[family-name:var(--font-sans)] text-xs font-semibold leading-tight text-text group-hover:text-primary">
           {title}
         </span>
-        <span className="block text-[10px] leading-tight text-text-secondary">{subtitle}</span>
+        <span className="block text-[11.5px] leading-tight text-text-secondary">{subtitle}</span>
       </span>
     </motion.button>
   );

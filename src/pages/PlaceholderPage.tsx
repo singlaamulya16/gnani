@@ -35,7 +35,7 @@ export function PlaceholderPage({ titleKey, kind }: PlaceholderPageProps) {
 
   return (
     <div className="flex flex-col gap-3 pb-3">
-      <h1 className="font-[family-name:var(--font-sans)] text-sm font-bold tracking-tight">
+      <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight tracking-tight">
         {t(titleKey)}
       </h1>
       {kind ? (

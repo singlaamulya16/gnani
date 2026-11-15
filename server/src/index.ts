@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import cors from 'cors';
 import express from 'express';
 import { config } from './config.js';
@@ -10,9 +13,11 @@ import { placesRouter } from './routes/places.js';
 import { registerRouter } from './routes/register.js';
 import { streamRouter } from './routes/stream.js';
 import { voiceRouter } from './routes/voice.js';
+import { loadSnapshots } from './ingest/snapshot.js';
 
 async function main() {
   const mode = await initDb();
+  await loadSnapshots();
   const app = express();
   app.use(cors());
   // Voice routes first: /stt needs the raw audio body, not JSON.
@@ -28,6 +33,25 @@ async function main() {
       google: config.enableGoogle,
       gnani: Boolean(config.gnaniApiKey),
     });
+  });
+
+  // Dev helper: save a raw Overpass snapshot (localhost only) into server/data/.
+  app.post('/api/dev/snapshot', express.json({ limit: '5mb' }), (req, res) => {
+    const ip = req.socket.remoteAddress ?? '';
+    if (!/^(::1|127\.0\.0\.1|::ffff:127\.0\.0\.1)$/.test(ip)) {
+      res.status(403).end();
+      return;
+    }
+    const name = String(req.query.name ?? 'snapshot').replace(/[^a-z0-9-]/gi, '');
+    const els = (req.body as { elements?: unknown[] })?.elements;
+    if (!Array.isArray(els) || !els.length) {
+      res.status(400).json({ error: 'elements required' });
+      return;
+    }
+    const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../data');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, `osm-${name}.json`), JSON.stringify({ elements: els }));
+    res.json({ ok: true, saved: els.length });
   });
 
   app.use('/api/places', placesRouter);

@@ -2,19 +2,7 @@ import { config } from '../config.js';
 import type { OverpassResponse } from './types.js';
 import { buildAroundQuery } from './query.js';
 
-let endpointIndex = 0;
 const inFlight = new Map<string, Promise<OverpassResponse>>();
-
-function nextEndpoint(): string {
-  const list = config.overpassEndpoints;
-  const url = list[endpointIndex % list.length]!;
-  endpointIndex += 1;
-  return url;
-}
-
-async function sleep(ms: number) {
-  await new Promise((r) => setTimeout(r, ms));
-}
 
 export async function fetchOverpassAround(
   lat: number,
@@ -25,12 +13,14 @@ export async function fetchOverpassAround(
   const existing = inFlight.get(key);
   if (existing) return existing;
 
+  // Race all mirrors in parallel; first good answer wins. Public Overpass is often 502/slow.
   const task = (async () => {
     const body = buildAroundQuery(lat, lng, radiusM);
-    let lastError: unknown;
-    // One pass per mirror, short timeout — public Overpass is often slow/rate-limited
-    for (let attempt = 0; attempt < config.overpassEndpoints.length; attempt++) {
-      const endpoint = nextEndpoint();
+    const controllers: AbortController[] = [];
+    const attempts = config.overpassEndpoints.map(async (endpoint) => {
+      const ctrl = new AbortController();
+      controllers.push(ctrl);
+      const timer = setTimeout(() => ctrl.abort(), 35_000);
       try {
         console.log(`[overpass] try ${endpoint}`);
         const res = await fetch(endpoint, {
@@ -40,26 +30,23 @@ export async function fetchOverpassAround(
             'User-Agent': config.userAgent,
           },
           body: `data=${encodeURIComponent(body)}`,
-          signal: AbortSignal.timeout(12_000),
+          signal: ctrl.signal,
         });
-        if (res.status === 429 || res.status === 504 || res.status === 502) {
-          console.warn(`[overpass] ${res.status} from ${endpoint}`);
-          await sleep(400 * 2 ** attempt);
-          continue;
-        }
-        if (!res.ok) {
-          throw new Error(`Overpass HTTP ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Overpass HTTP ${res.status} from ${endpoint}`);
         const json = (await res.json()) as OverpassResponse;
         console.log(`[overpass] ok ${endpoint} elements=${json.elements?.length ?? 0}`);
         return json;
-      } catch (err) {
-        lastError = err;
-        console.warn(`[overpass] fail ${endpoint}`, err instanceof Error ? err.message : err);
-        await sleep(250 * 2 ** attempt);
+      } finally {
+        clearTimeout(timer);
       }
+    });
+    try {
+      return await Promise.any(attempts);
+    } catch {
+      throw new Error('All Overpass mirrors failed');
+    } finally {
+      controllers.forEach((c) => c.abort());
     }
-    throw lastError instanceof Error ? lastError : new Error('Overpass failed');
   })();
 
   inFlight.set(key, task);

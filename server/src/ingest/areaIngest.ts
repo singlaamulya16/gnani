@@ -7,7 +7,7 @@ import { areaKey } from '../overpass/query.js';
 const ingesting = new Set<string>();
 /** Cooldown after a failed Overpass pull so the UI is not stuck refreshing. */
 const failedAt = new Map<string, number>();
-const FAIL_COOLDOWN_MS = 5 * 60_000;
+const FAIL_COOLDOWN_MS = 45_000;
 
 function stale(iso: string): boolean {
   const ageMs = Date.now() - new Date(iso).getTime();

@@ -20,7 +20,7 @@ export function RequestsPage() {
 
   return (
     <div className="flex flex-col gap-3 pb-3">
-      <h1 className="font-[family-name:var(--font-sans)] text-sm font-bold">{t('pages.requests')}</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">{t('pages.requests')}</h1>
       <EmergencyBanner />
       <div className="grid grid-cols-2 gap-2 rounded-[var(--radius-lg)] bg-surface-low p-1">
         {(['active', 'past'] as const).map((key) => (

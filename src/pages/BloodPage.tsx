@@ -74,7 +74,7 @@ export function BloodPage() {
 
   return (
     <div className="flex flex-col gap-3 pb-3">
-      <h1 className="font-[family-name:var(--font-sans)] text-sm font-bold">{t('pages.blood')}</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-[24px] font-semibold leading-tight">{t('pages.blood')}</h1>
       <EmergencyBanner />
 
       {phase === 'form' && (
@@ -121,7 +121,7 @@ export function BloodPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {places.map((place) => (
+              {places.filter((p) => p.kind === 'blood_bank').map((place) => (
                 <PlaceCard
                   key={place.id}
                   place={place}
@@ -149,7 +149,7 @@ export function BloodPage() {
                   </span>
                 </button>
               ))}
-              {!places.length && !donors.length && <EmptyState />}
+              {!places.some((p) => p.kind === 'blood_bank') && !donors.length && <EmptyState />}
               <Button fullWidth onClick={() => void request()}>
                 {t('blood.sendRequest')}
               </Button>

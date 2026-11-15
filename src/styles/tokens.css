@@ -1,48 +1,55 @@
 @theme {
-  /* Brand semantic colors (from DESIGN.md brand section) */
-  --color-primary: #0e9f8e;
-  --color-primary-dark: #00685c;
-  --color-primary-container: #008375;
-  --color-primary-soft: #e6f7f5;
-  --color-primary-fixed: #81f6e3;
+  /* HelpMe brand: deep forest green + bright amber (reference: green/yellow portfolio style) */
+  --color-primary: #2e4a36;
+  --color-primary-dark: #1f3626;
+  --color-primary-container: #3b5e45;
+  --color-primary-soft: #eaf2ec;
+  --color-primary-fixed: #cfe3d3;
   --color-on-primary: #ffffff;
 
-  --color-sos: #e53935;
-  --color-sos-dark: #b7131a;
-  --color-sos-soft: #ffdad6;
+  --color-accent: #f5a623;
+  --color-accent-dark: #d98c0a;
+  --color-accent-soft: #fff3db;
+  --color-on-accent: #1f2a22;
+
+  --color-sos: #e5383b;
+  --color-sos-dark: #b81d22;
+  --color-sos-soft: #ffe3e1;
   --color-on-sos: #ffffff;
 
-  --color-text: #1a2433;
-  --color-text-secondary: #6b7685;
-  --color-text-muted: #3d4946;
-  --color-on-surface: #111c29;
+  --color-text: #1c2820;
+  --color-text-secondary: #5c6a61;
+  --color-text-muted: #3d4a42;
+  --color-on-surface: #16211a;
 
-  --color-bg: #f5f7fa;
+  --color-bg: #f8f9f5;
   --color-surface: #ffffff;
-  --color-surface-low: #eef4ff;
-  --color-surface-mid: #e4efff;
-  --color-surface-high: #dee9fa;
-  --color-border: #e2e8f0;
-  --color-outline: #6d7a76;
+  --color-surface-low: #f2f5ef;
+  --color-surface-mid: #e8ede4;
+  --color-surface-high: #dde5d8;
+  --color-border: #e5e9e1;
+  --color-outline: #75847a;
 
-  --color-success: #0e9f8e;
-  --color-warning: #d97706;
-  --color-error: #ba1a1a;
+  --color-success: #2f9e5b;
+  --color-warning: #d98c0a;
+  --color-error: #c62828;
 
-  --font-sans: 'Inter', 'Noto Sans', system-ui, sans-serif;
-  --font-body: 'Noto Sans', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Outfit', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-body: 'Inter', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-display: 'Outfit', 'Noto Sans Devanagari', system-ui, sans-serif;
 
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-xl: 1.25rem;
   --radius-2xl: 1.75rem;
   --radius-full: 9999px;
 
-  --shadow-card: 0 2px 8px -2px rgb(26 36 51 / 0.06), 0 1px 4px -1px rgb(26 36 51 / 0.04);
-  --shadow-float: 0 8px 24px -4px rgb(26 36 51 / 0.12);
-  --shadow-sos: 0 12px 32px -4px rgb(229 57 53 / 0.4);
-  --shadow-voice: 0 16px 40px -6px rgb(14 159 142 / 0.35);
+  --shadow-card: 0 1px 2px rgb(28 40 32 / 0.04), 0 4px 14px -4px rgb(28 40 32 / 0.08);
+  --shadow-float: 0 12px 32px -8px rgb(28 40 32 / 0.18);
+  --shadow-sos: 0 12px 28px -6px rgb(229 56 59 / 0.45);
+  --shadow-voice: 0 16px 40px -8px rgb(46 74 54 / 0.45);
+  --shadow-accent: 0 10px 24px -8px rgb(245 166 35 / 0.6);
 
   --spacing-touch: 3.5rem;
   --breakpoint-desktop: 1024px;
@@ -50,7 +57,7 @@
 
 :root {
   color-scheme: light;
-  --header-h: 3.5rem;
+  --header-h: 4rem;
   --bottom-nav-h: 3.75rem;
   --map-mobile-h: 50%;
 }

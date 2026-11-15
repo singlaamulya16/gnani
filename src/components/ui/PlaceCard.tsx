@@ -38,46 +38,46 @@ export function PlaceCard({ place, selected, onSelect, actions = true }: PlaceCa
     <motion.div
       whileTap={{ scale: 0.985 }}
       className={cn(
-        'w-full rounded-xl bg-surface p-2.5 text-left shadow-[var(--shadow-card)] transition-shadow',
-        selected && 'ring-2 ring-primary shadow-[var(--shadow-float)]',
+        'w-full rounded-[var(--radius-xl)] border border-border bg-surface p-4 text-left shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-float)]',
+        selected && 'ring-2 ring-accent shadow-[var(--shadow-float)]',
       )}
     >
-      <button type="button" onClick={onSelect} className="flex w-full items-start gap-2 text-left">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary">
+      <button type="button" onClick={onSelect} className="flex w-full items-start gap-3 text-left">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-soft text-primary">
           <Icon name={kindIcon[place.kind]} size={18} />
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-start justify-between gap-2">
-            <span className="font-[family-name:var(--font-sans)] text-[13px] font-semibold leading-snug text-text">
+            <span className="font-[family-name:var(--font-sans)] text-[15px] font-semibold leading-snug text-text">
               {place.name}
             </span>
-            <span className="shrink-0 text-[10px] font-semibold text-primary">
+            <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-white">
               {place.distanceKm.toFixed(1)} {t('common.km')}
             </span>
           </span>
-          <span className="mt-0.5 block truncate text-[11px] text-text-secondary">{place.address}</span>
-          <span className="mt-1 block text-[10px] text-text-secondary">{hoursLabel}</span>
+          <span className="mt-0.5 block truncate text-[12.5px] text-text-secondary">{place.address}</span>
+          <span className="mt-1 block text-[12px] text-text-secondary">{hoursLabel}</span>
           <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
             {place.demo || place.source === 'demo' ? (
-              <span className="rounded-full bg-surface-low px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-text-secondary">
+              <span className="rounded-full bg-surface-low px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-text-secondary">
                 {t('places.demo')}
               </span>
             ) : place.verified ? (
-              <span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary">
+              <span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary">
                 {t('places.verified')}
               </span>
             ) : (
-              <span className="rounded-full bg-surface-low px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-text-secondary">
+              <span className="rounded-full bg-surface-low px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-text-secondary">
                 {t('places.unverified')}
               </span>
             )}
             {place.openNow === true && (
-              <span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary">
+              <span className="rounded-full bg-primary-soft px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary">
                 {t('common.openNow')}
               </span>
             )}
             {place.etaMin != null && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] text-text-secondary">
+              <span className="inline-flex items-center gap-0.5 text-[11.5px] text-text-secondary">
                 <Icon name="clock" size={11} />
                 {place.etaMin} {t('common.min')}
               </span>
@@ -88,7 +88,7 @@ export function PlaceCard({ place, selected, onSelect, actions = true }: PlaceCa
               .map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-surface-low px-1.5 py-0.5 text-[9px] font-semibold text-text-secondary"
+                  className="rounded-full bg-surface-low px-1.5 py-0.5 text-[11px] font-semibold text-text-secondary"
                 >
                   {tag}
                 </span>
@@ -135,7 +135,7 @@ export function PlaceCard({ place, selected, onSelect, actions = true }: PlaceCa
                     if (r.ok) setReportSent(true);
                   });
               }}
-              className="w-full text-left text-[10px] font-semibold text-text-secondary underline-offset-2 hover:underline disabled:no-underline"
+              className="w-full text-left text-[11.5px] font-semibold text-text-secondary underline-offset-2 hover:underline disabled:no-underline"
             >
               {reportSent ? t('places.reportSent') : t('places.reportWrong')}
             </button>
