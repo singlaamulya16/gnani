@@ -26,5 +26,14 @@ export const config = {
   mapplsClientSecret: process.env.MAPPLS_CLIENT_SECRET ?? '',
   googlePlacesApiKey: process.env.GOOGLE_PLACES_API_KEY ?? '',
   mapboxToken: process.env.VITE_MAPBOX_TOKEN ?? process.env.MAPBOX_TOKEN ?? '',
+  // Gnani (Prisma STT + Timbre TTS). Server-only.
+  gnaniApiKey: process.env.GNANI_API_KEY?.trim() ?? '',
+  gnaniBaseUrl: (process.env.GNANI_BASE_URL ?? 'https://api.vachana.ai').replace(/\/$/, ''),
+  gnaniSttModel: process.env.GNANI_STT_MODEL ?? 'prisma-v3.0',
+  gnaniSttLanguage: process.env.GNANI_STT_LANGUAGE ?? '',
+  gnaniTtsModel: process.env.GNANI_TTS_MODEL ?? 'timbre-v2.5',
+  gnaniVoiceHi: process.env.GNANI_VOICE_HI ?? 'Nalini',
+  gnaniVoiceEn: process.env.GNANI_VOICE_EN ?? 'Devika',
+  gnaniVoiceHinglish: process.env.GNANI_VOICE_HINGLISH ?? 'Poorvi',
   userAgent: 'HelpMe/0.1 (emergency medical help; contact: helpme@local)',
 };

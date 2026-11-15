@@ -5,6 +5,26 @@ Emergency medical help for India — SOS, blood, hospitals, pharmacies, ambulanc
 Mission brief: [`docs/MISSION.md`](docs/MISSION.md)  
 Design source: [`design-reference/`](design-reference/)
 
+
+## Voice: Gnani AI (Prisma + Timbre)
+
+Every voice interaction runs through Gnani:
+
+```
+mic (16 kHz WAV) -> POST /api/voice/stt -> Gnani Prisma v3.0 (hi-IN,en-IN, Hinglish-friendly)
+  -> intent parser (EN / Hindi / Hinglish) -> map filter, route, blood search, ambulance, SOS
+  -> POST /api/voice/tts -> Gnani Timbre v2.5 (Nalini hi-IN / Devika en-IN / Poorvi Hinglish) -> speaker
+```
+
+- Keys live only in `.env` on the server (`GNANI_API_KEY`). The browser never sees them.
+- Get a key: https://app.gnani.ai/voice  ·  Docs: https://docs.gnani.ai
+- Test your key: `cd server && node scripts/test-gnani.mjs`
+- Without a key the app falls back to the browser's Web Speech API (dev only).
+
+Try saying: "Nearest hospital", "B+ blood chahiye, 2 units", "ambulance bulao", "मुझे पास का अस्पताल दिखाओ", "Hindi mein bolo".
+
+Files: `server/src/routes/voice.ts`, `src/services/voice/{voiceService,recorder,intent}.ts`, `src/hooks/useVoiceCommand.ts`.
+
 ## Stack
 
 **Frontend:** React · TypeScript · Vite · Tailwind v4 · React Router · Zustand · Framer Motion · Lucide · react-i18next · MapLibre (Esri streets) · optional Mapbox Directions  

@@ -9,11 +9,14 @@ import { emergencyRouter } from './routes/emergency.js';
 import { placesRouter } from './routes/places.js';
 import { registerRouter } from './routes/register.js';
 import { streamRouter } from './routes/stream.js';
+import { voiceRouter } from './routes/voice.js';
 
 async function main() {
   const mode = await initDb();
   const app = express();
   app.use(cors());
+  // Voice routes first: /stt needs the raw audio body, not JSON.
+  app.use('/api/voice', express.json({ limit: '64kb' }), voiceRouter);
   app.use(express.json({ limit: '256kb' }));
 
   app.get('/api/health', (_req, res) => {
@@ -23,6 +26,7 @@ async function main() {
       overpass: config.overpassEndpoints.length,
       mappls: config.enableMappls,
       google: config.enableGoogle,
+      gnani: Boolean(config.gnaniApiKey),
     });
   });
 

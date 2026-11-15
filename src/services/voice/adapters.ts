@@ -6,7 +6,8 @@
  * - Gnani Timbre → text-to-speech
  * - LLM (Claude) → tool-calling helper
  *
- * Current runtime uses Web Speech API + mock phrase mapper (see voiceService.ts).
+ * LIVE implementation now lives in voiceService.ts + server/src/routes/voice.ts.
+ * These interfaces are kept for reference only.
  */
 
 export interface SttAdapter {

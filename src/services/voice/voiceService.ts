@@ -1,3 +1,7 @@
+import { apiUrl } from '@/lib/api';
+import { interpret as parseIntent, type ReplyLang } from './intent';
+import { recordWav, stopRecording, isRecording } from './recorder';
+
 export type VoiceToolName =
   | 'findBlood'
   | 'findPlaces'
@@ -13,109 +17,145 @@ export interface VoiceToolCall {
 export interface VoiceResult {
   transcript: string;
   reply: string;
+  replyLang: ReplyLang;
   tools: VoiceToolCall[];
 }
 
+export type VoiceProvider = 'gnani' | 'browser';
+
 export interface VoiceService {
+  /** Records until silence/tap, returns the transcript. */
   startListening(lang: string): Promise<string>;
+  stopListening(): void;
+  isListening(): boolean;
   speak(text: string, lang: string): Promise<void>;
-  interpret(transcript: string): VoiceResult;
+  interpret(transcript: string, uiLang: string): VoiceResult;
+  provider(): Promise<VoiceProvider>;
 }
+
+/* ---------------- provider detection ---------------- */
+
+let providerPromise: Promise<VoiceProvider> | null = null;
+function detectProvider(): Promise<VoiceProvider> {
+  if (!providerPromise) {
+    providerPromise = fetch(apiUrl('/api/voice/status'))
+      .then((r) => (r.ok ? r.json() : { gnani: false }))
+      .then((d: { gnani?: boolean }) => (d.gnani ? 'gnani' : 'browser') as VoiceProvider)
+      .catch(() => 'browser' as VoiceProvider);
+  }
+  return providerPromise;
+}
+
+/* ---------------- browser fallback (dev only) ---------------- */
 
 type SpeechRec = {
   lang: string;
   interimResults: boolean;
   maxAlternatives: number;
   start: () => void;
+  stop: () => void;
   onresult: ((ev: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
   onerror: (() => void) | null;
+  onend: (() => void) | null;
 };
-
 type SpeechRecCtor = new () => SpeechRec;
+let browserRec: SpeechRec | null = null;
 
-function mockInterpret(transcript: string): VoiceResult {
-  const t = transcript.toLowerCase();
-  if (t.includes('hospital') || t.includes('अस्पताल')) {
-    return {
-      transcript,
-      reply: 'Showing nearby hospitals on the map.',
-      tools: [{ name: 'findPlaces', args: { kind: 'hospital' } }],
+function browserListen(lang: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const w = window as unknown as { SpeechRecognition?: SpeechRecCtor; webkitSpeechRecognition?: SpeechRecCtor };
+    const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!SR) {
+      reject(new Error('Speech recognition not supported in this browser'));
+      return;
+    }
+    const rec = new SR();
+    browserRec = rec;
+    rec.lang = lang.startsWith('hi') ? 'hi-IN' : 'en-IN';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (ev) => resolve(ev.results[0]?.[0]?.transcript ?? '');
+    rec.onerror = () => reject(new Error('Listening failed'));
+    rec.onend = () => {
+      browserRec = null;
     };
-  }
-  if (t.includes('pharmacy') || t.includes('medicine') || t.includes('दवा')) {
-    return {
-      transcript,
-      reply: 'Filtering pharmacies near you.',
-      tools: [{ name: 'findPlaces', args: { kind: 'pharmacy' } }],
-    };
-  }
-  if (t.includes('ambulance') || t.includes('एम्बुलेंस') || t.includes('bulao')) {
-    return {
-      transcript,
-      reply: 'Requesting the nearest available ambulance.',
-      tools: [{ name: 'requestAmbulance', args: {} }],
-    };
-  }
-  if (t.includes('blood') || t.includes('रक्त') || t.includes('b+') || t.includes('o-')) {
-    const group = t.includes('o-') ? 'O-' : t.includes('b+') ? 'B+' : 'B+';
-    return {
-      transcript,
-      reply: `Searching for ${group} blood donors and banks.`,
-      tools: [{ name: 'findBlood', args: { group } }],
-    };
-  }
-  if (t.includes('hindi') || t.includes('हिंदी')) {
-    return {
-      transcript,
-      reply: 'Switching language to Hindi.',
-      tools: [{ name: 'switchLanguage', args: { lang: 'hi' } }],
-    };
-  }
-  if (t.includes('english')) {
-    return {
-      transcript,
-      reply: 'Switching language to English.',
-      tools: [{ name: 'switchLanguage', args: { lang: 'en' } }],
-    };
-  }
-  return {
-    transcript,
-    reply: 'I can find hospitals, blood, pharmacies, or call an ambulance. Try saying “show hospitals”.',
-    tools: [],
-  };
+    rec.start();
+  });
 }
 
-export const webSpeechVoiceService: VoiceService = {
-  startListening(lang) {
-    return new Promise((resolve, reject) => {
-      const w = window as unknown as {
-        SpeechRecognition?: SpeechRecCtor;
-        webkitSpeechRecognition?: SpeechRecCtor;
-      };
-      const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
-      if (!SR) {
-        reject(new Error('Speech recognition not supported in this browser'));
-        return;
-      }
-      const rec = new SR();
-      rec.lang = lang.startsWith('hi') ? 'hi-IN' : 'en-IN';
-      rec.interimResults = false;
-      rec.maxAlternatives = 1;
-      rec.onresult = (ev) => {
-        resolve(ev.results[0]?.[0]?.transcript ?? '');
-      };
-      rec.onerror = () => reject(new Error('Listening failed'));
-      rec.start();
-    });
+function browserSpeak(text: string, lang: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) return resolve();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang === 'en' ? 'en-IN' : 'hi-IN';
+    u.onend = () => resolve();
+    u.onerror = () => resolve();
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  });
+}
+
+/* ---------------- Gnani (via our backend proxy) ---------------- */
+
+async function gnaniListen(lang: string): Promise<string> {
+  const wav = await recordWav();
+  const r = await fetch(apiUrl(`/api/voice/stt?lang=${encodeURIComponent(lang)}`), {
+    method: 'POST',
+    headers: { 'Content-Type': 'audio/wav' },
+    body: wav,
+  });
+  if (!r.ok) throw new Error(`STT failed (${r.status})`);
+  const data = (await r.json()) as { transcript?: string };
+  const text = (data.transcript ?? '').trim();
+  if (!text) throw new Error('No speech detected');
+  return text;
+}
+
+let currentAudio: HTMLAudioElement | null = null;
+
+async function gnaniSpeak(text: string, lang: string): Promise<void> {
+  const r = await fetch(apiUrl('/api/voice/tts'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, lang }),
+  });
+  if (!r.ok) throw new Error(`TTS failed (${r.status})`);
+  const url = URL.createObjectURL(await r.blob());
+  currentAudio?.pause();
+  const audio = new Audio(url);
+  currentAudio = audio;
+  await new Promise<void>((resolve) => {
+    audio.onended = () => resolve();
+    audio.onerror = () => resolve();
+    audio.play().catch(() => resolve());
+  });
+  URL.revokeObjectURL(url);
+}
+
+/* ---------------- public service ---------------- */
+
+export const voiceService: VoiceService = {
+  async startListening(lang) {
+    return (await detectProvider()) === 'gnani' ? gnaniListen(lang) : browserListen(lang);
+  },
+  stopListening() {
+    if (isRecording()) stopRecording();
+    browserRec?.stop();
+  },
+  isListening() {
+    return isRecording() || browserRec !== null;
   },
   async speak(text, lang) {
-    if (!window.speechSynthesis) return;
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = lang.startsWith('hi') ? 'hi-IN' : 'en-IN';
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utter);
+    if ((await detectProvider()) === 'gnani') {
+      try {
+        await gnaniSpeak(text, lang);
+        return;
+      } catch (err) {
+        console.warn('[voice] Gnani TTS failed, using browser voice', err);
+      }
+    }
+    await browserSpeak(text, lang);
   },
-  interpret: mockInterpret,
+  interpret: parseIntent,
+  provider: detectProvider,
 };
-
-export const voiceService: VoiceService = webSpeechVoiceService;

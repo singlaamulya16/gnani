@@ -1,65 +1,30 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, EmergencyBanner, Icon } from '@/components/ui';
+import { useVoiceCommand } from '@/hooks/useVoiceCommand';
 import { voiceService } from '@/services/voice/voiceService';
 import { useAppStore } from '@/store/appStore';
 
 const suggestions = [
   { labelKey: 'voice.chipHospitals', text: 'show hospitals' },
-  { labelKey: 'voice.chipBlood', text: 'B+ blood chahiye' },
+  { labelKey: 'voice.chipBlood', text: 'B+ blood chahiye, 2 units' },
   { labelKey: 'voice.chipAmbulance', text: 'ambulance bulao' },
 ];
 
 export function VoicePage() {
-  const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const voiceState = useAppStore((s) => s.voiceState);
-  const setVoiceState = useAppStore((s) => s.setVoiceState);
-  const setVoiceCopy = useAppStore((s) => s.setVoiceCopy);
+  const { t } = useTranslation();
+  const { voiceState, toggleListen, runTranscript } = useVoiceCommand();
   const transcript = useAppStore((s) => s.voiceTranscript);
   const reply = useAppStore((s) => s.voiceReply);
-  const setActiveFilters = useAppStore((s) => s.setActiveFilters);
-  const setLanguage = useAppStore((s) => s.setLanguage);
   const [typed, setTyped] = useState('');
+  const [provider, setProvider] = useState<'gnani' | 'browser' | null>(null);
 
-  const runTranscript = async (text: string) => {
-    setVoiceState('understanding');
-    const result = voiceService.interpret(text);
-    setVoiceCopy(result.transcript, result.reply);
-    for (const tool of result.tools) {
-      if (tool.name === 'findPlaces' && tool.args.kind === 'hospital') {
-        setActiveFilters(['hospital']);
-        navigate('/hospitals');
-      }
-      if (tool.name === 'findPlaces' && tool.args.kind === 'pharmacy') {
-        setActiveFilters(['pharmacy']);
-        navigate('/pharmacy');
-      }
-      if (tool.name === 'findBlood') {
-        setActiveFilters(['blood_bank', 'donor']);
-        navigate('/blood');
-      }
-      if (tool.name === 'requestAmbulance') navigate('/ambulance');
-      if (tool.name === 'switchLanguage' && tool.args.lang) setLanguage(tool.args.lang);
-    }
-    setVoiceState('speaking');
-    await voiceService.speak(result.reply, i18n.language);
-    setVoiceState('idle');
-  };
+  useEffect(() => {
+    void voiceService.provider().then(setProvider);
+  }, []);
 
-  const listen = async () => {
-    try {
-      setVoiceState('listening');
-      const text = await voiceService.startListening(i18n.language);
-      await runTranscript(text);
-    } catch {
-      setVoiceState('error');
-      setVoiceCopy('', t('voice.error'));
-      window.setTimeout(() => setVoiceState('idle'), 1500);
-    }
-  };
+  const listen = () => void toggleListen();
 
   return (
     <div className="flex flex-col items-center gap-3 pb-3 text-center">
@@ -70,7 +35,7 @@ export function VoicePage() {
       <motion.button
         type="button"
         aria-label={t('voice.idle')}
-        onClick={() => void listen()}
+        onClick={listen}
         whileTap={{ scale: 0.96 }}
         className="relative flex h-36 w-36 items-center justify-center rounded-full bg-primary text-on-primary shadow-[var(--shadow-voice)]"
       >
@@ -92,6 +57,13 @@ export function VoicePage() {
               ? t('voice.speaking')
               : t('home.talkSub')}
       </p>
+      {provider && (
+        <p className="text-[11px] text-text-secondary">
+          {provider === 'gnani'
+            ? 'Voice by Gnani AI · Prisma (speech-to-text) + Timbre (text-to-speech)'
+            : 'Browser voice (dev fallback) · set GNANI_API_KEY on the server'}
+        </p>
+      )}
       {(transcript || reply) && (
         <div className="w-full space-y-2 rounded-[var(--radius-lg)] bg-surface p-3 text-left shadow-[var(--shadow-card)]">
           {transcript && (

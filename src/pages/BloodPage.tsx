@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   BloodGroupGrid,
@@ -28,8 +29,11 @@ export function BloodPage() {
   const setSelectedPlaceId = useAppStore((s) => s.setSelectedPlaceId);
   const setActiveFilters = useAppStore((s) => s.setActiveFilters);
   const push = useToastStore((s) => s.push);
-  const [group, setGroup] = useState<BloodGroup>('B+');
-  const [units, setUnits] = useState(2);
+  const [params] = useSearchParams();
+  const voiceGroup = params.get('group') as BloodGroup | null;
+  const voiceUnits = Number(params.get('units')) || null;
+  const [group, setGroup] = useState<BloodGroup>(voiceGroup ?? 'B+');
+  const [units, setUnits] = useState(voiceUnits ?? 2);
   const [phase, setPhase] = useState<Phase>('form');
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState<SampleRequest | null>(null);
@@ -39,17 +43,26 @@ export function BloodPage() {
     setActiveFilters(['blood_bank', 'donor']);
   }, [setActiveFilters]);
 
-  const search = async () => {
+  const search = async (g: BloodGroup = group) => {
     setLoading(true);
     const [{ places: banks, meta }, donorList] = await Promise.all([
       placesService.searchWithMeta({ near: coords, kind: 'blood_bank' }),
-      donorService.listNearby(coords, group),
+      donorService.listNearby(coords, g),
     ]);
     setPlaces(banks, meta);
     setDonors(donorList);
     setLoading(false);
     setPhase('results');
   };
+
+  // Filled by voice ("B+ blood chahiye, 2 units"): jump straight to results.
+  useEffect(() => {
+    if (!voiceGroup) return;
+    setGroup(voiceGroup);
+    if (voiceUnits) setUnits(voiceUnits);
+    void search(voiceGroup);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceGroup, voiceUnits]);
 
   const request = async () => {
     const req = await requestService.createBloodRequest({ bloodGroup: group, units });

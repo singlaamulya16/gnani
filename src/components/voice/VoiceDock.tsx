@@ -1,10 +1,8 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/ui';
 import { cn } from '@/lib/cn';
-import { voiceService } from '@/services/voice/voiceService';
-import { useAppStore } from '@/store/appStore';
+import { useVoiceCommand } from '@/hooks/useVoiceCommand';
 
 interface VoiceDockProps {
   floating?: boolean;
@@ -12,13 +10,8 @@ interface VoiceDockProps {
 }
 
 export function VoiceDock({ floating, className }: VoiceDockProps) {
-  const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const voiceState = useAppStore((s) => s.voiceState);
-  const setVoiceState = useAppStore((s) => s.setVoiceState);
-  const setVoiceCopy = useAppStore((s) => s.setVoiceCopy);
-  const setActiveFilters = useAppStore((s) => s.setActiveFilters);
-  const setLanguage = useAppStore((s) => s.setLanguage);
+  const { t } = useTranslation();
+  const { voiceState, toggleListen } = useVoiceCommand();
   const reduce = useReducedMotion();
 
   const label =
@@ -30,37 +23,7 @@ export function VoiceDock({ floating, className }: VoiceDockProps) {
           ? t('voice.speaking')
           : t('voice.idle');
 
-  const run = async () => {
-    try {
-      setVoiceState('listening');
-      const text = await voiceService.startListening(i18n.language);
-      setVoiceState('understanding');
-      const result = voiceService.interpret(text);
-      setVoiceCopy(result.transcript, result.reply);
-      for (const tool of result.tools) {
-        if (tool.name === 'findPlaces' && tool.args.kind === 'hospital') {
-          setActiveFilters(['hospital']);
-          navigate('/hospitals');
-        }
-        if (tool.name === 'findPlaces' && tool.args.kind === 'pharmacy') {
-          setActiveFilters(['pharmacy']);
-          navigate('/pharmacy');
-        }
-        if (tool.name === 'findBlood') {
-          setActiveFilters(['blood_bank', 'donor']);
-          navigate('/blood');
-        }
-        if (tool.name === 'requestAmbulance') navigate('/ambulance');
-        if (tool.name === 'switchLanguage' && tool.args.lang) setLanguage(tool.args.lang);
-      }
-      setVoiceState('speaking');
-      await voiceService.speak(result.reply, i18n.language);
-      setVoiceState('idle');
-    } catch {
-      setVoiceState('idle');
-      navigate('/voice');
-    }
-  };
+  const run = () => void toggleListen();
 
   return (
     <div
